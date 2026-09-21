@@ -1,10 +1,24 @@
 {
-  "id": "/cpat/inventario.html",
+  "id": "/inventario-ifal/inventario.html",
   "name": "Inventário Offline",
   "short_name": "Inventário",
-  "start_url": "/cpat/inventario.html",
-  "scope": "/cpat/",
+  "start_url": "/inventario-ifal/inventario.html",
+  "scope": "/inventario-ifal/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#006400"
+  "theme_color": "#006400",
+  "icons": [
+    {
+      "src": "/inventario-ifal/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/inventario-ifal/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
 }
