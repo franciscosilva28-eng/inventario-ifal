@@ -1,0 +1,10 @@
+{
+  "id": "/cpat/inventario.html",
+  "name": "Inventário Offline",
+  "short_name": "Inventário",
+  "start_url": "/cpat/inventario.html",
+  "scope": "/cpat/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#006400"
+}

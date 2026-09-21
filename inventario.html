@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Inventário IFAL</title>
+
+    <link rel="manifest" href="manifest.json">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            color: #222;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.10);
+        }
+
+        h1 {
+            color: #006b3c;
+            margin-top: 0;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #bbb;
+            border-radius: 5px;
+            font-size: 15px;
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        button {
+            padding: 11px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+            margin-top: 15px;
+            margin-right: 5px;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-salvar {
+            background: #006b3c;
+            color: white;
+        }
+
+        .btn-listar {
+            background: #333;
+            color: white;
+        }
+
+        .btn-exportar {
+            background: #b22222;
+            color: white;
+        }
+
+        #statusBanco {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        /* ================================
+           BUSCA DE CHEFIA
+           ================================ */
+
+        .campo-busca-chefia {
+            position: relative;
+        }
+
+        #resultadosChefia {
+            border: 1px solid #bbb;
+            border-top: none;
+            background: white;
+            max-height: 250px;
+            overflow-y: auto;
+            display: none;
+            position: absolute;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+        }
+
+        .resultado-chefia {
+            padding: 11px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        .resultado-chefia:hover {
+            background: #e8f5e9;
+        }
+
+        .resultado-chefia:last-child {
+            border-bottom: none;
+        }
+
+        .sem-resultado-chefia {
+            padding: 11px;
+            color: #777;
+            font-size: 14px;
+        }
+
+        .ajuda-chefia {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        /* ================================
+           LISTAGEM
+           ================================ */
+
+        #listaRegistros {
+            margin-top: 25px;
+        }
+
+        .registro {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #fafafa;
+        }
+
+        .registro strong {
+            color: #006b3c;
+        }
+
+        .fotos-registro {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .foto-registro {
+            width: 130px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        .foto-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .foto-preview img {
+            width: 100px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .separador {
+            margin-top: 25px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Inventário IFAL</h1>
+
+    <div id="statusBanco">
+        Inicializando banco de dados...
+    </div>
+
+    <form id="formInventario">
+
+        <label for="patrimonio">Patrimônio</label>
+        <input
+            type="text"
+            id="patrimonio"
+            placeholder="Número do patrimônio"
+        >
+
+        <label for="estado">Estado</label>
+        <select id="estado">
+            <option value="Em uso">Em uso</option>
+            <option value="Quebrado">Quebrado</option>
+            <option value="Não encontrado">Não encontrado</option>
+            <option value="Sem número">Sem número</option>
+        </select>
+
+        <label for="descricao">Descrição</label>
+        <textarea
+            id="descricao"
+            placeholder="Descrição do bem"
+        ></textarea>
+
+
+        <!-- ==========================================
+             NOVA BUSCA DE CHEFIA
+             ========================================== -->
+
+        <label for="buscarChefia">Buscar chefia</label>
+
+        <div class="campo-busca-chefia">
+
+            <input
+                type="text"
+                id="buscarChefia"
+                placeholder="Digite parte do nome da chefia..."
+                autocomplete="off"
+            >
+
+            <div class="ajuda-chefia">
+                Digite parte do nome e selecione uma das opções encontradas.
+            </div>
+
+            <div id="resultadosChefia"></div>
+
+        </div>
+
+
+        <label for="chefia">Chefia selecionada</label>
+
+        <input
+            type="text"
+            id="chefia"
+            placeholder="Selecione uma chefia na busca acima"
+            readonly
+        >
+
+
+        <label for="localizacao">Localização</label>
+        <input
+            type="text"
+            id="localizacao"
+            placeholder="Localização"
+        >
+
+        <label for="membro">Membro da equipe</label>
+        <input
+            type="text"
+            id="membro"
+            placeholder="Nome do membro"
+        >
+
+        <label for="imagens">Fotos</label>
+        <input
+            type="file"
+            id="imagens"
+            accept="image/*"
+            multiple
+        >
+
+        <div id="previewFotos" class="foto-preview"></div>
+
+
+        <div>
+            <button
+                type="submit"
+                class="btn-salvar"
+                id="salvarBtn"
+                disabled
+            >
+                Salvar Registro
+            </button>
+
+            <button
+                type="button"
+                class="btn-listar"
+                id="listarBtn"
+                disabled
+            >
+                Listar Registros
+            </button>
+
+            <button
+                type="button"
+                class="btn-exportar"
+                id="exportarBtn"
+                disabled
+            >
+                Exportar ZIP
+            </button>
+        </div>
+
+    </form>
+
+
+    <div class="separador">
+
+        <h2>Registros</h2>
+
+        <div id="listaRegistros"></div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     JSZIP
+     ===================================================== -->
+
+<script src="jszip.min.js"></script>
+
+
+<script>
+
+    /* =====================================================
+       CONFIGURAÇÃO DO BANCO
+       ===================================================== */
+
+    const NOME_BANCO = "InventarioDB";
+    const VERSAO_BANCO = 1;
+    const NOME_STORE = "registros";
+
+    let db = null;
+
+
+    /* =====================================================
+       ELEMENTOS DA TELA
+       ===================================================== */
+
+    const form = document.getElementById("formInventario");
+
+    const statusBanco =
+        document.getElementById("statusBanco");
+
+    const salvarBtn =
+        document.getElementById("salvarBtn");
+
+    const listarBtn =
+        document.getElementById("listarBtn");
+
+    const exportarBtn =
+        document.getElementById("exportarBtn");
+
+    const listaRegistros =
+        document.getElementById("listaRegistros");
+
+    const imagensInput =
+        document.getElementById("imagens");
+
+    const previewFotos =
+        document.getElementById("previewFotos");
+
+
+    /* =====================================================
+       LISTA DE CHEFIAS
+       ===================================================== */
+
+    const chefias = [
+
+        "CAMPUS MACEIÓ - UGR - 151618",
+
+        "COOR DE COMUNICACAO E EVENTOS/CMAC",
+        "COOR DE PESQUISA INSTITUCIONAL/CMAC",
+        "COOR DO CUR DE LIC CIEN BIOLOGICAS/CMAC",
+        "COOR DO CUR DE LIC EM FÍSICA/CMAC",
+        "COOR DO CUR DE LIC EM LETRAS/CMAC",
+        "COOR DO CUR SUP BAC SIS INFORMACOES/CMAC",
+        "COOR DO CUR SUP DE TEC EM ALIMENTOS/CMAC",
+        "COOR DO CUR SUP DE TEC EM HOTELARIA/CMAC",
+        "COOR DO CUR SUP TEC DES INTERIORES/CMAC",
+        "COOR DO CUR TEC DE EDIFICACOES/CMAC",
+        "COOR DO CUR TEC DE ELETRONICA/CMAC",
+        "COOR DO CUR TEC DE ELETROTECNICA/CMAC",
+        "COOR DO CUR TEC DE INFORMATICA/CMAC",
+        "COOR DO CUR TEC EM ARTESANATO (PROEJA)/CMAC",
+        "COOR DO CUR TEC EM ESTRADAS/CMAC",
+        "COOR DO CUR TEC EM MECANICA/CMAC",
+        "COOR DO CUR TEC EM QUIMICA/CMAC",
+        "COOR DO CUR TEC EM SEG DO TRABALHO/CMAC",
+
+        "COORD DE ALIMENTACAO E NUTRICAO/CMAC",
+        "COORD DE CONTRATOS/CMAC",
+        "COORD DE EDUCACAO FISICA E ESPORTES/CMAC",
+        "COORD DE LICENCIATURA EM MATEMATICA/CMAC",
+        "COORD DE LICENCIATURA EM QUIMICA/CMAC",
+        "COORD DE MANUTENCAO DE EQUIPAMENTOS/CMAC",
+        "COORD DE SEGURANCA/CMAC",
+        "COORD DE TECNOLOGIA DA INFORMACAO/CMAC",
+        "COORD DE TURISMO E HOTELARIA/CMAC",
+
+        "COORD DO CUR SUP EM ENG CIVIL/CMAC",
+        "COORD DOS LAB DE CONSTRUCAO CIVIL/CMAC",
+
+        "COORDEN DE PSICOLOGIA/CMAC",
+        "COORDEN DOS LAB DE BIOLOGIA/CMAC",
+        "COORDEN DOS LAB DE ELETRONICA/CMAC",
+        "COORDEN DOS LAB DE QUIMICA/CMAC",
+
+        "COORDENACAO DAS LICENCIATURAS/CMAC",
+        "COORDENACAO DE ALMOXARIFADO/CMAC",
+        "COORDENAÇÃO DE BIOLOGIA/CMAC",
+        "COORDENACAO DE CIENCIAS DA NATUREZA/CMAC",
+        "COORDENACAO DE CIENCIAS HUMANAS/CMAC",
+        "COORDENACAO DE DESIGN/CMAC",
+        "COORDENAÇÃO DE FÍSICA/CMAC",
+        "COORDENACAO DE GESTAO DE PESSOAS/CMAC",
+        "COORDENACAO DE LICENCIATURA/CMAC",
+        "COORDENACAO DE LICITACOES/CMAC",
+        "COORDENACAO DE LINGUAGENS E CODIGOS/CMAC",
+        "COORDENACAO DE MANUTENCAO E CONSERVACAO/CMAC",
+        "COORDENAÇÃO DE MATEMÁTICA/CMAC",
+        "COORDENACAO DE PATRIMONIO/CMAC",
+        "COORDENACAO DE PROTOCOLO/CMAC",
+        "COORDENAÇÃO DE REGISTRO ACADÊMICO/CMAC",
+        "COORDENAÇÃO DE RELAÇÕES EMPRESARIAIS E EGRESSOS/CMAC",
+        "COORDENACAO DE URBANIZACAO/CMAC",
+        "COORDENACAO DO NUCLEO DE ARTE E CULTURA/CMAC",
+
+        "COORDENAÇÃO DO NÚCLEO DE ATENDIMENTO ÀS PESSOAS COM NECESSIDADES ESPECÍFICAS - NAPNE/CMAC",
+
+        "COORDENACAO PEDAGOGICA/CMAC",
+        "COORDENADORIA DE BIBLIOTECA/CMAC",
+        "COORDENADORIA DE MANUTENCAO/CMAC",
+        "COORDENADORIA DE SERVICO SOCIAL/CMAC",
+        "COORDENADORIA DE SERVICOS GRAFICOS/CMAC",
+        "COORDENADORIA DE TRANSPORTE/CMAC",
+
+        "DEPARTAMENTO DE ASSISTÊNCIA ESTUDANTIL/CMAC",
+        "DEPARTAMENTO DE ENSINO SUPERIOR/CMAC",
+        "DEPARTAMENTO DE ENSINO TECNICO/CMAC",
+        "DEPARTAMENTO DE INFRAESTRUTURA E MANUTENCAO/CMAC",
+        "DEPARTAMENTO DE ORÇAMENTO E FINANÇAS/CMAC",
+        "DEPARTAMENTO DE SUPRIMENTOS/CMAC",
+
+        "DIRETORIA DE ADMINISTRACAO/CMAC",
+        "DIRETORIA DE APOIO ACADEMICO/CMAC",
+        "DIRETORIA DE ENSINO/CMAC",
+        "DIRETORIA DE EXTENSÃO, PESQUISA, PÓS-GRADUAÇÃO E INOVAÇÃO/CMAC",
+
+        "GABINETE/CMAC",
+
+        "NUCLEO DE GENERO, DIVERSIDADE E SEXUALIDADE/CMAC",
+
+        "SECRETARIA DE GABINETE/CMAC",
+
+        "SETOR DE NUTRIÇÃO/CMAC"
+    ];
+
+
+    /* =====================================================
+       NORMALIZAÇÃO DA BUSCA
+       Permite pesquisar sem acentos
+       ===================================================== */
+
+    function normalizarTexto(texto) {
+
+        return texto
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase();
+
+    }
+
+
+    /* =====================================================
+       BUSCA DE CHEFIA
+       ===================================================== */
+
+    const buscarChefia =
+        document.getElementById("buscarChefia");
+
+    const resultadosChefia =
+        document.getElementById("resultadosChefia");
+
+    const campoChefia =
+        document.getElementById("chefia");
+
+
+    buscarChefia.addEventListener("input", function () {
+
+        const textoBusca =
+            normalizarTexto(this.value.trim());
+
+        resultadosChefia.innerHTML = "";
+
+        if (!textoBusca) {
+
+            resultadosChefia.style.display = "none";
+
+            return;
+        }
+
+
+        const encontrados = chefias.filter(function (chefia) {
+
+            return normalizarTexto(chefia)
+                .includes(textoBusca);
+
+        });
+
+
+        if (encontrados.length === 0) {
+
+            resultadosChefia.innerHTML =
+                '<div class="sem-resultado-chefia">' +
+                'Nenhuma chefia encontrada.' +
+                '</div>';
+
+            resultadosChefia.style.display = "block";
+
+            return;
+        }
+
+
+        encontrados.forEach(function (chefia) {
+
+            const item =
+                document.createElement("div");
+
+            item.className =
+                "resultado-chefia";
+
+            item.textContent =
+                chefia;
+
+
+            item.addEventListener("click", function () {
+
+                campoChefia.value =
+                    chefia;
+
+                buscarChefia.value =
+                    chefia;
+
+                resultadosChefia.innerHTML = "";
+
+                resultadosChefia.style.display =
+                    "none";
+
+            });
+
+
+            resultadosChefia.appendChild(item);
+
+        });
+
+
+        resultadosChefia.style.display =
+            "block";
+
+    });
+
+
+    /* =====================================================
+       FECHAR RESULTADOS AO CLICAR FORA
+       ===================================================== */
+
+    document.addEventListener("click", function (event) {
+
+        if (!event.target.closest(".campo-busca-chefia")) {
+
+            resultadosChefia.style.display =
+                "none";
+
+        }
+
+    });
+
+
+    /* =====================================================
+       PREVISUALIZAÇÃO DAS FOTOS
+       ===================================================== */
+
+    imagensInput.addEventListener("change", function () {
+
+        previewFotos.innerHTML = "";
+
+        const arquivos = Array.from(this.files);
+
+        arquivos.forEach(function (arquivo) {
+
+            const imagem =
+                document.createElement("img");
+
+            imagem.src =
+                URL.createObjectURL(arquivo);
+
+            imagem.onload = function () {
+
+                URL.revokeObjectURL(imagem.src);
+
+            };
+
+            previewFotos.appendChild(imagem);
+
+        });
+
+    });
+
+
+    /* =====================================================
+       ABRIR BANCO
+       ===================================================== */
+
+    function abrirBanco() {
+
+        return new Promise(function (resolve, reject) {
+
+            const request =
+                indexedDB.open(
+                    NOME_BANCO,
+                    VERSAO_BANCO
+                );
+
+
+            request.onupgradeneeded =
+                function (event) {
+
+                    const banco =
+                        event.target.result;
+
+                    if (!banco.objectStoreNames.contains(NOME_STORE)) {
+
+                        banco.createObjectStore(
+                            NOME_STORE,
+                            {
+                                keyPath: "id",
+                                autoIncrement: true
+                            }
+                        );
+
+                    }
+
+                };
+
+
+            request.onsuccess =
+                function (event) {
+
+                    db =
+                        event.target.result;
+
+                    statusBanco.textContent =
+                        "Banco de dados pronto.";
+
+                    statusBanco.style.background =
+                        "#d4edda";
+
+                    statusBanco.style.color =
+                        "#155724";
+
+                    salvarBtn.disabled = false;
+                    listarBtn.disabled = false;
+                    exportarBtn.disabled = false;
+
+                    resolve(db);
+
+                };
+
+
+            request.onerror =
+                function () {
+
+                    statusBanco.textContent =
+                        "Erro ao acessar o banco de dados: " +
+                        request.error.message;
+
+                    statusBanco.style.background =
+                        "#f8d7da";
+
+                    statusBanco.style.color =
+                        "#721c24";
+
+                    reject(request.error);
+
+                };
+
+
+            request.onblocked =
+                function () {
+
+                    statusBanco.textContent =
+                        "O banco está sendo usado por outra janela ou aba. Feche outras abas do Inventário IFAL.";
+
+                    statusBanco.style.background =
+                        "#f8d7da";
+
+                    statusBanco.style.color =
+                        "#721c24";
+
+                };
+
+        });
+
+    }
+
+
+    /* =====================================================
+       SALVAR ÚLTIMA LOCALIZAÇÃO / CHEFIA / MEMBRO
+       ===================================================== */
+
+    function salvarPreferencias() {
+
+        localStorage.setItem(
+            "ultimaLocalizacao",
+            document.getElementById("localizacao").value
+        );
+
+        localStorage.setItem(
+            "ultimaChefia",
+            document.getElementById("chefia").value
+        );
+
+        localStorage.setItem(
+            "ultimoMembro",
+            document.getElementById("membro").value
+        );
+
+    }
+
+
+    /* =====================================================
+       RESTAURAR PREFERÊNCIAS
+       ===================================================== */
+
+    function restaurarPreferencias() {
+
+        const localizacao =
+            localStorage.getItem("ultimaLocalizacao");
+
+        const chefia =
+            localStorage.getItem("ultimaChefia");
+
+        const membro =
+            localStorage.getItem("ultimoMembro");
+
+
+        if (localizacao !== null) {
+
+            document.getElementById("localizacao").value =
+                localizacao;
+
+        }
+
+
+        if (chefia !== null) {
+
+            document.getElementById("chefia").value =
+                chefia;
+
+            document.getElementById("buscarChefia").value =
+                chefia;
+
+        }
+
+
+        if (membro !== null) {
+
+            document.getElementById("membro").value =
+                membro;
+
+        }
+
+    }
+
+
+    /* =====================================================
+       CONVERTER ARQUIVO PARA BLOB
+       ===================================================== */
+
+    async function arquivoParaBlob(arquivo) {
+
+        const arrayBuffer =
+            await arquivo.arrayBuffer();
+
+        return new Blob(
+            [arrayBuffer],
+            {
+                type: arquivo.type
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       SALVAR REGISTRO
+       ===================================================== */
+
+    form.addEventListener("submit", async function (event) {
+
+        event.preventDefault();
+
+
+        if (!db) {
+
+            alert(
+                "O banco de dados ainda não está pronto."
+            );
+
+            return;
+        }
+
+
+        try {
+
+            const arquivos =
+                Array.from(imagensInput.files);
+
+
+            const fotos = [];
+
+
+            for (const arquivo of arquivos) {
+
+                const blob =
+                    await arquivoParaBlob(arquivo);
+
+                fotos.push({
+
+                    nome: arquivo.name,
+
+                    tipo: arquivo.type,
+
+                    tamanho: arquivo.size,
+
+                    blob: blob
+
+                });
+
+            }
+
+
+            const registro = {
+
+                patrimonio:
+                    document.getElementById("patrimonio").value.trim(),
+
+                estado:
+                    document.getElementById("estado").value,
+
+                descricao:
+                    document.getElementById("descricao").value.trim(),
+
+                chefia:
+                    document.getElementById("chefia").value.trim(),
+
+                localizacao:
+                    document.getElementById("localizacao").value.trim(),
+
+                membro:
+                    document.getElementById("membro").value.trim(),
+
+                fotos:
+                    fotos,
+
+                timestamp:
+                    new Date().toISOString()
+
+            };
+
+
+            const transaction =
+                db.transaction(
+                    [NOME_STORE],
+                    "readwrite"
+                );
+
+
+            const store =
+                transaction.objectStore(
+                    NOME_STORE
+                );
+
+
+            const request =
+                store.add(registro);
+
+
+            request.onsuccess =
+                function () {
+
+                    salvarPreferencias();
+
+                    alert(
+                        "Registro salvo com sucesso!"
+                    );
+
+
+                    document.getElementById(
+                        "patrimonio"
+                    ).value = "";
+
+                    document.getElementById(
+                        "descricao"
+                    ).value = "";
+
+                    document.getElementById(
+                        "imagens"
+                    ).value = "";
+
+                    previewFotos.innerHTML = "";
+
+
+                    /*
+                       Mantemos chefia, localização e
+                       membro para agilizar o próximo cadastro.
+                    */
+
+                    listarRegistros();
+
+                };
+
+
+            request.onerror =
+                function () {
+
+                    alert(
+                        "Erro ao salvar registro: " +
+                        request.error.message
+                    );
+
+                };
+
+
+        } catch (erro) {
+
+            console.error(erro);
+
+            alert(
+                "Erro ao salvar registro: " +
+                erro.message
+            );
+
+        }
+
+    });
+
+
+    /* =====================================================
+       LISTAR REGISTROS
+       ===================================================== */
+
+    listarBtn.addEventListener(
+        "click",
+        listarRegistros
+    );
+
+
+    async function listarRegistros() {
+
+        if (!db) {
+
+            return;
+        }
+
+
+        listaRegistros.innerHTML =
+            "Carregando registros...";
+
+
+        const transaction =
+            db.transaction(
+                [NOME_STORE],
+                "readonly"
+            );
+
+
+        const store =
+            transaction.objectStore(
+                NOME_STORE
+            );
+
+
+        const request =
+            store.getAll();
+
+
+        request.onsuccess =
+            function () {
+
+                const registros =
+                    request.result;
+
+
+                listaRegistros.innerHTML = "";
+
+
+                if (registros.length === 0) {
+
+                    listaRegistros.innerHTML =
+                        "<p>Nenhum registro encontrado.</p>";
+
+                    return;
+                }
+
+
+                registros.reverse();
+
+
+                registros.forEach(function (registro) {
+
+                    const div =
+                        document.createElement("div");
+
+                    div.className =
+                        "registro";
+
+
+                    let html = "";
+
+                    html +=
+                        "<strong>Patrimônio:</strong> " +
+                        escaparHTML(registro.patrimonio) +
+                        "<br>";
+
+                    html +=
+                        "<strong>Estado:</strong> " +
+                        escaparHTML(registro.estado) +
+                        "<br>";
+
+                    html +=
+                        "<strong>Descrição:</strong> " +
+                        escaparHTML(registro.descricao) +
+                        "<br>";
+
+                    html +=
+                        "<strong>Chefia:</strong> " +
+                        escaparHTML(registro.chefia) +
+                        "<br>";
+
+                    html +=
+                        "<strong>Localização:</strong> " +
+                        escaparHTML(registro.localizacao) +
+                        "<br>";
+
+                    html +=
+                        "<strong>Membro:</strong> " +
+                        escaparHTML(registro.membro) +
+                        "<br>";
+					html +=
+						"<strong>Data/Hora:</strong> " +
+						formatarDataHora(registro.timestamp) +
+						"<br>";
+
+
+                    if (
+                        registro.fotos &&
+                        registro.fotos.length > 0
+                    ) {
+
+                        html +=
+                            "<div class='fotos-registro'>";
+
+
+                        registro.fotos.forEach(
+                            function (foto) {
+
+                                const url =
+                                    URL.createObjectURL(
+                                        foto.blob
+                                    );
+
+
+                                html +=
+                                    "<img " +
+                                    "src='" + url + "' " +
+                                    "class='foto-registro' " +
+                                    "alt='Foto do patrimônio'>";
+
+                            }
+                        );
+
+
+                        html +=
+                            "</div>";
+
+                    }
+
+
+                    div.innerHTML =
+                        html;
+
+
+                    listaRegistros.appendChild(
+                        div
+                    );
+
+                });
+
+            };
+
+
+        request.onerror =
+            function () {
+
+                listaRegistros.innerHTML =
+                    "<p>Erro ao listar registros.</p>";
+
+            };
+
+    }
+
+
+    /* =====================================================
+       ESCAPAR HTML
+       ===================================================== */
+
+    function escaparHTML(texto) {
+
+        if (texto === null ||
+            texto === undefined) {
+
+            return "";
+
+        }
+
+
+        return String(texto)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+
+    }
+	function formatarDataHora(timestamp) {
+
+    if (!timestamp) {
+        return "";
+    }
+
+    const data = new Date(timestamp);
+
+    return data.toLocaleString("pt-BR");
+}
+
+    /* =====================================================
+       ESCAPAR CSV
+       ===================================================== */
+
+    function escaparCSV(valor) {
+
+        if (
+            valor === null ||
+            valor === undefined
+        ) {
+
+            return "";
+
+        }
+
+
+        return '"' +
+            String(valor)
+                .replace(/"/g, '""') +
+            '"';
+
+    }
+
+
+    /* =====================================================
+       EXTENSÃO DA FOTO
+       ===================================================== */
+
+    function obterExtensaoFoto(foto) {
+
+        if (foto.nome) {
+
+            const partes =
+                foto.nome.split(".");
+
+            if (partes.length > 1) {
+
+                return partes
+                    .pop()
+                    .toLowerCase();
+
+            }
+
+        }
+
+
+        if (foto.tipo) {
+
+            const tipo =
+                foto.tipo.split("/")[1];
+
+            if (tipo) {
+
+                return tipo
+                    .replace("jpeg", "jpg")
+                    .toLowerCase();
+
+            }
+
+        }
+
+
+        return "jpg";
+
+    }
+
+
+    /* =====================================================
+       LIMPAR NOME DE ARQUIVO
+       ===================================================== */
+
+    function limparNomeArquivo(nome) {
+
+        return String(nome)
+            .replace(/[\\/:*?"<>|]/g, "_")
+            .replace(/\s+/g, "_");
+
+    }
+
+
+    /* =====================================================
+       EXPORTAR ZIP
+       ===================================================== */
+
+    exportarBtn.addEventListener(
+        "click",
+        exportarZIP
+    );
+
+
+    async function exportarZIP() {
+
+        if (!db) {
+
+            alert(
+                "O banco de dados ainda não está pronto."
+            );
+
+            return;
+        }
+
+
+        try {
+
+            const transaction =
+                db.transaction(
+                    [NOME_STORE],
+                    "readonly"
+                );
+
+
+            const store =
+                transaction.objectStore(
+                    NOME_STORE
+                );
+
+
+            const request =
+                store.getAll();
+
+
+            request.onsuccess =
+                async function () {
+
+                    const registros =
+                        request.result;
+
+
+                    if (registros.length === 0) {
+
+                        alert(
+                            "Não existem registros para exportar."
+                        );
+
+                        return;
+                    }
+
+
+                    const zip =
+                        new JSZip();
+
+
+                    const pastaFotos =
+                        zip.folder("fotos");
+
+
+                    let csv =
+                        "ID;Patrimônio;Estado;Descrição;Chefia;Localização;Membro;Data;Imagens\n";
+
+
+                    registros.forEach(
+                        function (registro) {
+
+                            const caminhosFotos = [];
+
+
+                            if (
+                                registro.fotos &&
+                                registro.fotos.length > 0
+                            ) {
+
+                                registro.fotos.forEach(
+                                    function (foto, indice) {
+
+                                        const extensao =
+                                            obterExtensaoFoto(
+                                                foto
+                                            );
+
+
+                                        const patrimonio =
+                                            limparNomeArquivo(
+                                                registro.patrimonio ||
+                                                "sem_patrimonio"
+                                            );
+
+
+                                        const nomeFoto =
+                                            "patrimonio_" +
+                                            patrimonio +
+                                            "_" +
+                                            (indice + 1) +
+                                            "." +
+                                            extensao;
+
+
+                                        const caminho =
+                                            "fotos/" +
+                                            nomeFoto;
+
+
+                                        caminhosFotos.push(
+                                            caminho
+                                        );
+
+
+                                        pastaFotos.file(
+                                            nomeFoto,
+                                            foto.blob
+                                        );
+
+                                    }
+                                );
+
+                            }
+
+
+                            csv +=
+                                escaparCSV(registro.id) +
+                                ";" +
+                                escaparCSV(registro.patrimonio) +
+                                ";" +
+                                escaparCSV(registro.estado) +
+                                ";" +
+                                escaparCSV(registro.descricao) +
+                                ";" +
+                                escaparCSV(registro.chefia) +
+                                ";" +
+                                escaparCSV(registro.localizacao) +
+                                ";" +
+                                escaparCSV(registro.membro) +
+                                ";" +
+                                escaparCSV(registro.timestamp) +
+                                ";" +
+                                escaparCSV(
+                                    caminhosFotos.join(", ")
+                                ) +
+                                "\n";
+
+                        }
+                    );
+
+
+                    zip.file(
+                        "inventario.csv",
+                        "\uFEFF" + csv
+                    );
+
+
+                    const conteudoZIP =
+                        await zip.generateAsync(
+                            {
+                                type: "blob"
+                            }
+                        );
+
+
+                    const url =
+                        URL.createObjectURL(
+                            conteudoZIP
+                        );
+
+
+                    const link =
+                        document.createElement("a");
+
+
+                    link.href =
+                        url;
+
+
+
+
+
+
+
+
+
+
+const membroAtual =
+    document.getElementById("membro").value.trim() ||
+    localStorage.getItem("ultimoMembro") ||
+    "sem_membro";
+
+const agora = new Date();
+
+const ano =
+    agora.getFullYear();
+
+const mes =
+    String(agora.getMonth() + 1).padStart(2, "0");
+
+const dia =
+    String(agora.getDate()).padStart(2, "0");
+
+const hora =
+    String(agora.getHours()).padStart(2, "0");
+
+const minuto =
+    String(agora.getMinutes()).padStart(2, "0");
+
+const nomeArquivoZIP =
+    "inventario_" +
+    limparNomeArquivo(membroAtual) +
+    "_" +
+    ano +
+    mes +
+    dia +
+    "_" +
+    hora +
+    minuto +
+    ".zip";
+
+link.download =
+    nomeArquivoZIP;
+
+
+
+
+
+
+
+
+
+
+
+                    document.body.appendChild(
+                        link
+                    );
+
+
+                    link.click();
+
+
+                    link.remove();
+
+
+                    URL.revokeObjectURL(
+                        url
+                    );
+
+
+                    alert(
+                        "Inventário exportado com sucesso!"
+                    );
+
+                };
+
+
+            request.onerror =
+                function () {
+
+                    alert(
+                        "Erro ao exportar os registros."
+                    );
+
+                };
+
+
+        } catch (erro) {
+
+            console.error(erro);
+
+            alert(
+                "Erro ao exportar ZIP: " +
+                erro.message
+            );
+
+        }
+
+    }
+
+
+    /* =====================================================
+       INICIALIZAÇÃO
+       ===================================================== */
+
+    abrirBanco()
+        .then(function () {
+
+            restaurarPreferencias();
+
+        })
+        .catch(function (erro) {
+
+            console.error(
+                "Erro ao inicializar banco:",
+                erro
+            );
+
+        });
+
+
+    /* =====================================================
+       SERVICE WORKER
+       ===================================================== */
+
+    if ("serviceWorker" in navigator) {
+
+        window.addEventListener(
+            "load",
+            function () {
+
+                navigator.serviceWorker
+                    .register("sw.js")
+                    .then(function () {
+
+                        console.log(
+                            "Service Worker registrado."
+                        );
+
+                    })
+                    .catch(function (erro) {
+
+                        console.error(
+                            "Erro no Service Worker:",
+                            erro
+                        );
+
+                    });
+
+            }
+        );
+
+    }
+
+</script>
+
+</body>
+</html>
