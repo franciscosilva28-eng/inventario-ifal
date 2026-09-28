@@ -1,0 +1,2047 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventário IFAL</title>
+    <link rel="manifest" href="manifest.json">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            color: #222;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.10);
+        }
+
+        h1 {
+            color: #006b3c;
+            margin-top: 0;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #bbb;
+            border-radius: 5px;
+            font-size: 15px;
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        button {
+            padding: 11px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+            margin-top: 15px;
+            margin-right: 5px;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-salvar {
+            background: #006b3c;
+            color: white;
+        }
+
+        .btn-listar {
+            background: #333;
+            color: white;
+        }
+
+        .btn-exportar {
+            background: #b22222;
+            color: white;
+        }
+
+        #statusBanco {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-csv {
+            font-size: 12px;
+            margin-top: 4px;
+            color: #666;
+        }
+
+        /* Classes compartilhadas de busca dinâmica (Chefia e Localização) */
+        .campo-busca-dinamica {
+            position: relative;
+        }
+
+        .resultados-dinamicos {
+            border: 1px solid #bbb;
+            border-top: none;
+            background: white;
+            max-height: 250px;
+            overflow-y: auto;
+            display: none;
+            position: absolute;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+        }
+
+        .item-resultado {
+            padding: 11px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        .item-resultado:hover {
+            background: #e8f5e9;
+        }
+
+        .item-resultado:last-child {
+            border-bottom: none;
+        }
+
+        .sem-resultado {
+            padding: 11px;
+            color: #777;
+            font-size: 14px;
+        }
+
+        .ajuda-campo {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        #listaRegistros {
+            margin-top: 25px;
+        }
+
+        .registro {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #fafafa;
+        }
+
+        .registro strong {
+            color: #006b3c;
+        }
+
+        .fotos-registro {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .foto-registro {
+            width: 130px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        .foto-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .foto-preview img {
+            width: 100px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .separador {
+            margin-top: 25px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+
+        .modal {
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            overflow: auto;
+        }
+
+        .modal-conteudo {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .fechar {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .fechar:hover {
+            color: #000;
+        }
+
+        .btn-editar {
+            background: #0275d8;
+            color: white;
+            padding: 6px 12px;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        .btn-excluir {
+            background: #d9534f;
+            color: white;
+            padding: 6px 12px;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        .btn-editar:hover { background: #025aa5; }
+        .btn-excluir:hover { background: #c9302c; }
+		
+		
+		
+		
+									/* Container da Checkbox */
+							.form-group-checkbox {
+								display: flex;
+								align-items: center;
+								gap: 8px; /* Espaço entre a caixa e o texto */
+								margin-top: 10px;
+								margin-bottom: 15px;
+							}
+
+							/* Garante que o label da checkbox fique alinhado na mesma linha */
+							.form-group-checkbox label {
+								display: flex;
+								align-items: center;
+								gap: 8px;
+								cursor: pointer;
+								font-weight: normal; /* ou bold, conforme seu padrão */
+								width: auto; /* Impede que o label ocupe 100% da largura */
+								margin: 0;
+							}
+
+							/* Garante que a caixinha não estique nem herde estilos de inputs de texto */
+							.form-group-checkbox input[type="checkbox"] {
+								width: 18px;
+								height: 18px;
+								margin: 0;
+								cursor: pointer;
+							}
+									
+		
+		
+		
+		
+
+
+						textarea[readonly], input[readonly] {
+					background-color: #e9ecef; /* Tom cinzento claro */
+					cursor: not-allowed;        /* Muda o cursor para indicar bloqueio */
+				}
+
+		
+		
+		
+		
+		
+		
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Inventário IFAL</h1>
+
+    <div id="statusBanco">
+        Inicializando banco de dados...
+    </div>
+
+    <form id="formInventario">
+
+        <label for="patrimonio">Patrimônio</label>
+        <input type="text" id="patrimonio" placeholder="Digite ou escaneie o número do patrimônio" autocomplete="off">
+        <div id="statusCsv" class="status-csv">Carregando catálogo de bens do servidor...</div>
+		
+		
+		
+									<!-- NOVO CAMPO: Descrição Anterior (Formulário Principal) -->
+					<label for="descricaoanterior">Descrição Anterior</label>
+					<textarea id="descricaoanterior" placeholder="Descrição anterior do bem" readonly></textarea>
+											
+			
+
+
+					<!-- NOVO CAMPO: Checkbox Diferença Relevante (Formulário Principal) -->
+					<div class="form-group-checkbox">
+						<label for="DiferencaRelevanteNoBem">
+							<input type="checkbox" id="DiferencaRelevanteNoBem">
+							Diferença relevante no bem
+						</label>
+					</div>			
+		
+		
+
+        <label for="estado">Estado</label>
+        <select id="estado">
+            <option value="EM USO">EM USO</option>
+            <option value="DEFEITUOSO">DEFEITUOSO</option>
+            <option value="OCIOSO">OCIOSO</option>
+            <option value="NAO ENCONTRADO">NAO ENCONTRADO</option>
+        </select>
+
+        <label for="descricao">Descrição</label>
+        <textarea id="descricao" placeholder="Descrição do bem (preenchida automaticamente ao localizar o patrimônio)"></textarea>
+
+        <!-- BUSCA DE CHEFIA -->
+        <label for="buscarChefia">Buscar chefia</label>
+        <div class="campo-busca-dinamica">
+            <input type="text" id="buscarChefia" placeholder="Digite parte do nome da chefia..." autocomplete="off">
+            <div class="ajuda-campo">
+                Digite parte do nome e selecione uma das opções encontradas.
+            </div>
+            <div id="resultadosChefia" class="resultados-dinamicos"></div>
+        </div>
+
+        <label for="chefia">Chefia selecionada</label>
+        <input type="text" id="chefia" placeholder="Selecione uma chefia na busca acima" readonly>
+
+        <!-- BUSCA DE LOCALIZAÇÃO -->
+        <label for="buscarLocalizacao">Buscar localização</label>
+        <div class="campo-busca-dinamica">
+            <input type="text" id="buscarLocalizacao" placeholder="Digite parte do nome da localização..." autocomplete="off">
+            <div class="ajuda-campo">
+                Digite parte do nome do ambiente e selecione a opção.
+            </div>
+            <div id="resultadosLocalizacao" class="resultados-dinamicos"></div>
+        </div>
+
+        <label for="localizacao">Localização selecionada</label>
+        <input type="text" id="localizacao" placeholder="Selecione uma localização na busca acima" readonly>
+
+        <label for="membro">Membro da equipe</label>
+        <input type="text" id="membro" placeholder="Nome do membro">
+
+        <label>Fotos</label>
+        <div>
+            <button type="button" id="btnCamera">📷 Tirar foto</button>
+            <button type="button" id="btnGaleria">🖼️ Escolher foto</button>
+
+            <input type="file" id="camera" accept="image/*" capture="environment" hidden>
+            <input type="file" id="fotos" accept="image/*" multiple hidden>
+        </div>
+
+        <div id="previewFotos" class="foto-preview"></div>
+
+        <div>
+            <button type="submit" class="btn-salvar" id="salvarBtn" disabled>Salvar Registro</button>
+            <button type="button" class="btn-listar" id="listarBtn" disabled>Listar Registros</button>
+            <button type="button" class="btn-exportar" id="exportarBtn" disabled>Exportar ZIP</button>
+        </div>
+
+    </form>
+
+    <div class="separador">
+        <h2>Registros</h2>
+        <div id="listaRegistros"></div>
+    </div>
+
+</div>
+
+<!-- MODAL DE EDIÇÃO -->
+<div id="modalEdicao" class="modal" style="display:none;">
+    <div class="modal-conteudo">
+        <span id="fecharModal" class="fechar">&times;</span>
+        <h2>Editar Registro</h2>
+        
+        <form id="formEdicao">
+            <input type="hidden" id="editId">
+
+            <label for="editPatrimonio">Patrimônio</label>
+            <input type="text" id="editPatrimonio">
+			
+			
+												<!-- NOVO CAMPO: Descrição Anterior (Modal de Edição) -->
+						<label for="editDescricaoanterior">Descrição Anterior</label>
+						<textarea id="editDescricaoanterior" readonly></textarea>
+			
+			
+									<!-- NOVO CAMPO: Checkbox Diferença Relevante (Modal de Edição) -->
+						<div class="form-group-checkbox">
+							<label for="editDiferencaRelevanteNoBem">
+								<input type="checkbox" id="editDiferencaRelevanteNoBem">
+								Diferença relevante no bem
+							</label>
+						</div>
+			
+			
+
+            <label for="editEstado">Estado</label>
+            <select id="editEstado">
+                <option value="EM USO">EM USO</option>
+                <option value="DEFEITUOSO">DEFEITUOSO</option>
+                <option value="OCIOSO">OCIOSO</option>
+                <option value="NAO ENCONTRADO">NAO ENCONTRADO</option>
+            </select>
+
+            <label for="editDescricao">Descrição</label>
+            <textarea id="editDescricao"></textarea>
+
+            <label for="editChefia">Chefia</label>
+            <input type="text" id="editChefia">
+
+            <label for="editLocalizacao">Localização</label>
+            <input type="text" id="editLocalizacao">
+
+            <label for="editMembro">Membro da equipe</label>
+            <input type="text" id="editMembro">
+
+            <button type="submit" class="btn-salvar">Salvar Alterações</button>
+        </form>
+    </div>
+</div>
+
+<script src="jszip.min.js"></script>
+
+<script>
+/**
+ * ==============================================================================
+ * MODULO 1: CONFIGURAÇÕES E DADOS ESTÁTICOS (ConfigModule)
+ * ==============================================================================
+ */
+const ConfigModule = (function () {
+    const DB_NAME = "InventarioDB";
+    const DB_VERSION = 1;
+    const STORE_NAME = "registros";
+    const CSV_URL = "bens.csv";
+
+    const CHEFIAS = [
+        "CAMPUS MACEIÓ - UGR - 151618",
+        "COOR DE COMUNICACAO E EVENTOS/CMAC",
+        "COOR DE PESQUISA INSTITUCIONAL/CMAC",
+        "COOR DO CUR DE LIC CIEN BIOLOGICAS/CMAC",
+        "COOR DO CUR DE LIC EM FÍSICA/CMAC",
+        "COOR DO CUR DE LIC EM LETRAS/CMAC",
+        "COOR DO CUR SUP BAC SIS INFORMACOES/CMAC",
+        "COOR DO CUR SUP DE TEC EM ALIMENTOS/CMAC",
+        "COOR DO CUR SUP DE TEC EM HOTELARIA/CMAC",
+        "COOR DO CUR SUP TEC DES INTERIORES/CMAC",
+        "COOR DO CUR TEC DE EDIFICACOES/CMAC",
+        "COOR DO CUR TEC DE ELETRONICA/CMAC",
+        "COOR DO CUR TEC DE ELETROTECNICA/CMAC",
+        "COOR DO CUR TEC DE INFORMATICA/CMAC",
+        "COOR DO CUR TEC EM ARTESANATO (PROEJA)/CMAC",
+        "COOR DO CUR TEC EM ESTRADAS/CMAC",
+        "COOR DO CUR TEC EM MECANICA/CMAC",
+        "COOR DO CUR TEC EM QUIMICA/CMAC",
+        "COOR DO CUR TEC EM SEG DO TRABALHO/CMAC",
+        "COORD DE ALIMENTACAO E NUTRICAO/CMAC",
+        "COORD DE CONTRATOS/CMAC",
+        "COORD DE EDUCACAO FISICA E ESPORTES/CMAC",
+        "COORD DE LICENCIATURA EM MATEMATICA/CMAC",
+        "COORD DE LICENCIATURA EM QUIMICA/CMAC",
+        "COORD DE MANUTENCAO DE EQUIPAMENTOS/CMAC",
+        "COORD DE SEGURANCA/CMAC",
+        "COORD DE TECNOLOGIA DA INFORMACAO/CMAC",
+        "COORD DE TURISMO E HOTELARIA/CMAC",
+        "COORD DO CUR SUP EM ENG CIVIL/CMAC",
+        "COORD DOS LAB DE CONSTRUCAO CIVIL/CMAC",
+        "COORDEN DE PSICOLOGIA/CMAC",
+        "COORDEN DOS LAB DE BIOLOGIA/CMAC",
+        "COORDEN DOS LAB DE ELETRONICA/CMAC",
+        "COORDEN DOS LAB DE QUIMICA/CMAC",
+        "COORDENACAO DAS LICENCIATURAS/CMAC",
+        "COORDENACAO DE ALMOXARIFADO/CMAC",
+        "COORDENAÇÃO DE BIOLOGIA/CMAC",
+        "COORDENACAO DE CIENCIAS DA NATUREZA/CMAC",
+        "COORDENACAO DE CIENCIAS HUMANAS/CMAC",
+        "COORDENACAO DE DESIGN/CMAC",
+        "COORDENAÇÃO DE FÍSICA/CMAC",
+        "COORDENACAO DE GESTAO DE PESSOAS/CMAC",
+        "COORDENACAO DE LICENCIATURA/CMAC",
+        "COORDENACAO DE LICITACOES/CMAC",
+        "COORDENACAO DE LINGUAGENS E CODIGOS/CMAC",
+        "COORDENACAO DE MANUTENCAO E CONSERVACAO/CMAC",
+        "COORDENAÇÃO DE MATEMÁTICA/CMAC",
+        "COORDENACAO DE PATRIMONIO/CMAC",
+        "COORDENACAO DE PROTOCOLO/CMAC",
+        "COORDENAÇÃO DE REGISTRO ACADÊMICO/CMAC",
+        "COORDENAÇÃO DE RELAÇÕES EMPRESARIAIS E EGRESSOS/CMAC",
+        "COORDENACAO DE URBANIZACAO/CMAC",
+        "COORDENACAO DO NUCLEO DE ARTE E CULTURA/CMAC",
+        "COORDENAÇÃO DO NÚCLEO DE ATENDIMENTO ÀS PESSOAS COM NECESSIDADES ESPECÍFICAS - NAPNE/CMAC",
+        "COORDENACAO PEDAGOGICA/CMAC",
+        "COORDENADORIA DE BIBLIOTECA/CMAC",
+        "COORDENADORIA DE MANUTENCAO/CMAC",
+        "COORDENADORIA DE SERVICO SOCIAL/CMAC",
+        "COORDENADORIA DE SERVICOS GRAFICOS/CMAC",
+        "COORDENADORIA DE TRANSPORTE/CMAC",
+        "DEPARTAMENTO DE ASSISTÊNCIA ESTUDANTIL/CMAC",
+        "DEPARTAMENTO DE ENSINO SUPERIOR/CMAC",
+        "DEPARTAMENTO DE ENSINO TECNICO/CMAC",
+        "DEPARTAMENTO DE INFRAESTRUTURA E MANUTENCAO/CMAC",
+        "DEPARTAMENTO DE ORÇAMENTO E FINANÇAS/CMAC",
+        "DEPARTAMENTO DE SUPRIMENTOS/CMAC",
+        "DIRETORIA DE ADMINISTRACAO/CMAC",
+        "DIRETORIA DE APOIO ACADEMICO/CMAC",
+        "DIRETORIA DE ENSINO/CMAC",
+        "DIRETORIA DE EXTENSÃO, PESQUISA, PÓS-GRADUAÇÃO E INOVAÇÃO/CMAC",
+        "GABINETE/CMAC",
+        "NUCLEO DE GENERO, DIVERSIDADE E SEXUALIDADE/CMAC",
+        "SECRETARIA DE GABINETE/CMAC",
+        "SETOR DE NUTRIÇÃO/CMAC"
+    ];
+
+    const LOCALIZACOES = [
+        "ANTE-SALA DA COORDENAÇÃO DE INFORMÁTICA - INFORMÁTICA",
+        "ÁREA EXTERNA DO BLOCO DE EDIFICAÇÕES",
+        "ATELIÊ DE ARTES PLÁSTICAS - SALA 209",
+        "AUDITÓRIO - INFORMÁTICA",
+        "AUDITÓRIO JORGE BATISTA I",
+        "AUDITÓRIO OSCAR SÁTIRO",
+        "BADM-1 - CORREDOR DO BLOCO ADMINISTRATIVO - 1º ANDAR",
+        "BADM-1-01- DIRETORIA DE ADMINISTRAÇÃO",
+        "BADM-1-02 - COORDENACAO DE LICITACOES/CMAC",
+        "BADM-1-03-ARQUIVO DO DEPARTAMENTO DE ORÇAMENTO E FINANÇAS",
+        "BADM-1-04 - DEPARTAMENTO DE ORÇAMENTO E FINANÇAS/CMAC",
+        "BADM-T - CORREDOR DO BLOCO ADMINISTRATIVO - TÉRREO",
+        "BADM-T-01 - GABINETE/CMAC",
+        "BADM-T-02 - COORDENAÇÃO DE GESTÃO DE PESSOAS/CMAC",
+        "BADM-T-04 - COORDENAÇÃO DE GESTÃO DE PESSOAS",
+        "BADM-T-05 - DIREÇÃO DE ENSINO/CMAC",
+        "BADM-T-06 - DIREÇÃO DE ENSINO",
+        "BADM-T-07 - COORDENAÇÃO DE COMUNICAÇÃO E EVENTOS",
+        "BADM-T-08 - COORDENAÇÃO DE REGISTRO ACADEMICO/CMAC",
+        "BADM-T-09 - COPA",
+        "BADM-T-10 - COORD DE CONTRATOS/CMAC",
+        "BADM-T-11 - DEPARTAMENTO DE SUPRIMENTOS/CMAC",
+        "BADM-T-12 - SALA DE REUNIÃO DA DIREÇÃO GERAL",
+        "BADM-T-13 - DIREÇÃO GERAL/CMAC",
+        "BADM-T-14 - GABINETE DA DIREÇÃO GERAL",
+        "BADM-T-15 - ARQUIVO - REGISTRO ACADÊMICO",
+        "BADM-T-16 - DIRETORIA DE EXTENSÃO, PESQUISA, PÓS-GRADUAÇÃO E INOVAÇÃO",
+        "BADM-T-17 - DIRETORIA DE EXTENSÃO, PESQUISA, PÓS-GRADUAÇÃO E INOVAÇÃO/CMAC",
+        "BADM-T-18 - COORDENAÇÃO DE RELAÇÕES EMPRESARIAIS E EGRESSOS/CMAC",
+        "BALM-T-01 - SALA DA COORDENAÇÃO DE PATRIMÔNIO/CMAC",
+        "BALM-T-03 - COORDENADORA DE SERVIÇOS GRÁFICOS/CMAC",
+        "BALM-T-04 - COORDENAÇÃO DE PATRIMÔNIO",
+        "BALM-T-04-01 DESFAZIMENTO ANTESSALA COORD. PATRIMÔNIO",
+        "BALM-T-05 - GALPÃO DO ALMOXARIFADO",
+        "BALM-T-06 - SALA DA COORDENAÇÃO DO ALMOXARIFADO",
+        "BALM-T-07 - DEPÓSITO DO ALMOXARIFADO",
+        "BALM-T-08 - ENTRADA - BANHEIRO",
+        "BALM-T-08-01 - DEPÓSITO DE LIMPEZA",
+        "BALM-T-09 - SALA DO FISCAL (LIMPEZA)",
+        "BALM-T-10 - SALA DE DESCANSO",
+        "BALM-T-12 - COPA",
+        "BEDI-T-01 - HALL DE ACESSO",
+        "BEDI-T-01-01 - COORDENAÇÃO DE EDIFICAÇÕES",
+        "BEDI-T-01-02 - SALA DE REUNIÕES - EDIFICAÇÕES",
+        "BEDI-T-01-03 - SALA DOS PROFESSORES 01",
+        "BEDI-T-02 - SALA DOS PROFESSORES 02",
+        "BEDI-T-03 - DEPÓSITO DO PATRIMÔNIO",
+        "BEDI-T-04 - LABIM II",
+        "BEDI-T-05 - LABIM I - EDIFICAÇÕES",
+        "BEDI-T-06 - SALA DE AULA 01 - EDIFICAÇÕES",
+        "BEDI-T-07 - SALA DE AULA 02 - EDIFICAÇÕES",
+        "BEDI-T-08 - LABORATÓRIO DE INSTALAÇÕES HIDROSSANITÁRIAS",
+        "BEDI-T-09 - SALA DE AULA 09 - EDIFICAÇÕES",
+        "BELE-1-01 MONITORIA",
+        "BELE-1-01-01 ALMOXARIFADO",
+        "BELE-1-01-02 COFRE",
+        "BELE-1-03 LAB 1 HALL",
+        "BELE-1-03 LAB 2",
+        "BELE-1-03 LAB 3",
+        "BELE-1-04 LAB B-02",
+        "BELE-1-05 LAB B-03",
+        "BELE-1-06 LAB B-04",
+        "BELE-1-07 LAB B-05",
+        "BELE-1-08 LAB B-06 HALL",
+        "BELE-1-08-01 LAB PROJETOS ELETRONICOS",
+        "BELE-1-08-02 LAB PROJETOS ELETRONICOS",
+        "BELE-2 - CORREDOR DE ELETRONICA - 2 ANDAR",
+        "BELE-2-01 LAB ROBÓTICA",
+        "BELE-2-01-01 LAB ROBOTICA 1",
+        "BELE-2-02 LAB C-05",
+        "BELE-2-03 LAB C-04",
+        "BELE-2-04 SALA DE AULA",
+        "BELE-2-05 SALA DE AULA",
+        "BELE-2-06 LAB C-01 HALL",
+        "BELE-2-06-01 LAB - C-02",
+        "BELE-2-06-02 LAB - C-03",
+        "BELE-2-08 LAB C-08",
+        "BELE-T - CORREDOR DE ELETRONICA - TERREO",
+        "BELE-T-01 SALA DE AULA 01",
+        "BELE-T-02 SALA DE AULA 02",
+        "BELE-T-03 SALA DE AULA 03",
+        "BELE-T-04 SALA DE AULA 04",
+        "BELE-T-05 SALA DE AULA 05",
+        "BELE-T-06 SALA DE AULA 06",
+        "BELE-T-07 COORDENAÇÃO DE ELETRÔNICA",
+        "BELE-T-08 SALA DOS PROFESSORES",
+        "BENS NÃO INVENTARIADOS 2021",
+        "BEST-T CORREDOR DE ESTRADAS",
+        "BEST-T-01 - COORD DE MANUTENÇÃO E CONSERVAÇÃO",
+        "BEST-T-02 LAB. DE ENSAIOS DE MATERIAS",
+        "BEST-T-04 LABORATÓRIO DE PAVIMENTAÇÃO",
+        "BEST-T-05 SALA DO TÉCNICO DE LABORATÓRIO",
+        "BEST-T-06 LABORATÓRIO DE SOLO",
+        "BIBLIOTECA - LIVROS UM",
+        "BIBLIOTECA - MOBILIÁRIO",
+        "BIND-T - CORREDOR - LADO DO LAB. DE FUNDIÇÃO",
+        "BIND-T - CORREDOR PRINCIPAL",
+        "BIND-T-01 - LABORATÓRIO CAD 01",
+        "BIND-T-02 - LABORATÓRIO CAD 02",
+        "BIND-T-03 - LABORATÓRIO CAD 03",
+        "BIND-T-04 - LABORATÓRIO CAD 04",
+        "BIND-T-05 - LABORATÓRIO CAD 05",
+        "BIND-T-06 - LABORATÓRIO DE APLICATIVOS",
+        "BIND-T-07 - AUDITÓRIO JORGE BATISTA",
+        "BIND-T-08-02 LAB METALOGRAFIA",
+        "BIND-T-08-03 LAB DE TRATAMENTOS TÉRMICOS",
+        "BIND-T-08-04 SALA INDIVIDUAL DE PROFESSOR",
+        "BIND-T-08-05 LABORATÓRIO DE MICROSCOPIA",
+        "BIND-T-08-07 LAB DE ENSAIOS DE MATERIAIS",
+        "BIND-T-08-08 LAB CIENCIAS DOS MATERIAIS",
+        "BIND-T-10 SALA DE AULA",
+        "BIND-T-11 SALA DE AULA",
+        "BIND-T-12 LABORATÓRIO DE METROLOGIA",
+        "BIND-T-13 LABORATÓRIO DE USINAGEM - CNC",
+        "BIND-T-14 SALA DOS PROFESSORES",
+        "BIND-T-14-1 COORDENAÇÃO DE MECÂNICA",
+        "BIND-T-15 LABORATÓRIO DE CLIMATIZAÇÃO",
+        "BIND-T-15-01 SALA DE AULA",
+        "BIND-T-16 LABORATÓRIO AUTOMOTIVO",
+        "BIND-T-16-01 SALA DE AULA",
+        "BIND-T-17 - ALMOXARIFADO",
+        "BIND-T-17 - SALA DA COORDENAÇÃO DE MECÂNICA",
+        "BIND-T-17 - SALA INDIVIDUAL DO PROFESSOR",
+        "BIND-T-18 LABORATÓRIO DE SOLDAGEM",
+        "BIND-T-19 LABORATÓRIO DE CALDEIRARIA",
+        "BIND-T-19-01 SALA DE AULA",
+        "BIND-T-20 LAB DE REFRIGERAÇÃO DOMÉSTICA",
+        "BIND-T-21 LABORATÓRIO DE FUNDIÇÃO",
+        "BIND-T-21-01 SALA DE AULA",
+        "BIND-T-21-02 SALA DE FERRAMENTAS",
+        "BIND-T-22 - 02 SALA DOS PROFESSORES DO LAB. DE TERMOFLUIDOS",
+        "BIND-T-22 LAB DE SISTEMA DE TERMOFLUIDOS",
+        "BIND-T-22-01 SALA DE AULA",
+        "BIND-T-23 - LAB DE TERMOFLUIDOS",
+        "BIND-T-24 LAB DE AUTOMAÇÃO - SIST HIDR E PNEUMATICOS",
+        "BIND-T-25 SALA DE AULA",
+        "BIND-T-26 SALA DE AULA",
+        "BIND-T-27 LABORATÓRIO DE DESENHO",
+        "BIND-T-29 SALA DOS TÉCNICOS",
+        "BIND-T-30 SALA INDIVIDUAL DE PROFESSOR",
+        "BIND-T-31 SALA INDIVIDUAL DE PROFESSOR",
+        "BIND-T-32 SALA INDIVIDUAL DE PROFESSOR",
+        "BIND-T-33-01 - SALA DE AULA",
+        "BIND-T-34-01 - SALA DE AULA - LAB DE MÁQUINAS OPERATRIZES",
+        "BIND-T-34-02 - LAB DE MÁQUINAS OPERATRIZES",
+        "BIND-T-34-03 - SALA DE DE FERRAMENTAS - LAB DE MÁQUINAS OPERATRIZES",
+        "BIND-T-35 LAB DE TRANSFORMADORES",
+        "BIND-T-36 SALA DE AULA / LAB DE ELETRICIDAE",
+        "BIND-T-37 LAB DE COMANDOS INDUSTRIAIS",
+        "BIND-T-37-1 SALA DE AULA",
+        "BIND-T-39 SALA DE APOIO ADMINISTRATIVO",
+        "BIND-T-40 LABORATÓRIO DE ENSAIOS",
+        "BIND-T-41 LAB DE INSTALAÇÕES ELÉTRICAS",
+        "BIND-T-42 LAB DE SUBESTAÇÃO",
+        "BIND-T-46 COORDENAÇÃO DE ELETROTÉCNICA",
+        "BIND-T-47 SALA DE AULA",
+        "BIND-T-48 SALA DE AULA",
+        "BIND-T-49 LAB MÁQUINAS GTU",
+        "BIND-T-50 LAB DE ELETRICIDADE",
+        "BIND-T-51 - LABORATÓRIO DE SEGURANÇA DO TRABALHO",
+        "BINF-1 - CORREDOR 1º ANDAR - INFORMÁTICA",
+        "BINF-1 - CORREDOR DO BLOCO DE INFORMÁTICA - 1º ANDAR",
+        "BINF-1-01 - CP SOFTWARE - SALA DE PESQUISA",
+        "BINF-1-02 - LAB. DE INFORMÁTICA",
+        "BINF-1-03 - LAB. DE INFORMÁTICA",
+        "BINF-1-04 - LAB. DE INFORMÁTICA",
+        "BINF-1-05 - SALA DE AULA",
+        "BINF-1-06 - SALA DOS TÉCNICOS DE INFORMÁTICA",
+        "BINF-1-07 - LAB. DE INFORMÁTICA",
+        "BINF-1-08 - LAB. DE INFORMÁTICA",
+        "BINF-1-09 - LAB. DE INFORMÁTICA",
+        "BINF-1-10 - LAB. DE INFORMÁTICA",
+        "BINF-1-11 - MINI AUDITÓRIO DE INFORMÁTICA",
+        "BINF-1-12 - SALA",
+        "BINF-T - CORREDOR DE INFORMÁTICA - TÉRREO",
+        "BINF-T-02 - SALA DE AULA",
+        "BINF-T-03 - LAB. DE INFORMÁTICA",
+        "BINF-T-04 - SALA DOS PROFESSORES",
+        "BINF-T-05 - SALA DOS PROFESSORES",
+        "BINF-T-06 NÚCLEO DE CULTURA",
+        "BINF-T-07 NÚCLEO DE CULTURA",
+        "BINF-T-08 NÚCLEO DE CULTURA",
+        "BINF-T-09 NÚCLEO DE CULTURA",
+        "BINF-T-10 NÚCLEO DE CULTURA",
+        "BINF-T-11 NÚCLEO DE CULTURA",
+        "BINF-T-12 NÚCLEO DE CULTURA",
+        "BINF-T-13 NÚCLEO DE CULTURA",
+        "BINF-T-14 NÚCLEO DE CULTURA",
+        "BINF-T-15 NÚCLEO DE CULTURA",
+        "BPRI-1 - CORREDOR PRINCIPAL - 1º ANDAR",
+        "BPRI-1-01 - COORDENAÇÃO DE CIÊNCIAS HUMANAS E SUAS TECNOLOGIAS",
+        "BPRI-1-03 - SALA DE AULA",
+        "BPRI-1-04 - SALA DE AULA",
+        "BPRI-1-05 - SALA DE AULA",
+        "BPRI-1-06 - SALA DE AULA",
+        "BPRI-1-07 - SALA DE AULA",
+        "BPRI-1-08 - LIFE ACADEMICO - LAB. DE FÍSICA 03",
+        "BPRI-1-09 - NEPLI",
+        "BPRI-1-10 - LABORATÓRIO DE FÍSICA - 01",
+        "BPRI-1-11 - LABORATÓRIO PEDAGÓGICO DE BIOLOGIA - MONITORIA",
+        "BPRI-1-12 - CORE-COORDENAÇÃO DE BIOLOGIA/CMAC",
+        "BPRI-1-13 - COORDENAÇÃO DE BIOLOGIA/CMAC",
+        "BPRI-1-14 - SALA DOS PROFESSORES - 1º ANDAR - BLOCO PRINCIPAL",
+        "BPRI-1-15 - LIFE TECNOLÓGICO",
+        "BPRI-1-16 - LABORATÓRIO DE ENSINO DE MATEMÁTICA",
+        "BPRI-1-17 - SALA DE AULA",
+        "BPRI-1-18 - SALA DE AULA",
+        "BPRI-1-19 - SALA DE AULA",
+        "BPRI-1-20 - SALA DE AULA",
+        "BPRI-1-21 - SALA DE AULA",
+        "BPRI-1-22 - SALA DE AULA",
+        "BPRI-1-23 - SALA DE AULA",
+        "BPRI-1-24 - SALA DE AULA",
+        "BPRI-1-25 - LABORAT. DE FÍSICA - ARGOLO",
+        "BPRI-1-26 - LABORATÓRIO DE SÍNTESE",
+        "BPRI-1-27 - LABORATÓRIO DE SENSORIAMENTO ÓPTICO E INFORMÁTICA",
+        "BPRI-2-01 - LAB DE HOSPEDAGEM DE TURISMO E HOTELARIA",
+        "BPRI-2-02 - SALA DE PESQUISA EM DESIGN DE INTERIORES",
+        "BPRI-2-03 - LAB DE INFORMÁTICA DE TURISMO E HOTELARIA",
+        "BPRI-2-04 - AGÊNCIA DE TURISMO E HOTELARIA",
+        "BPRI-2-05 - LAB PRÁTICAS ARTESANAIS",
+        "BPRI-2-06 SALA DE AULA",
+        "BPRI-2-07 SALA DE AULA",
+        "BPRI-2-08 -- LABORATÓRIO DE MATERIAIS E REVESTIMENTOS",
+        "BPRI-2-09 SALA DE AULA",
+        "BPRI-2-10 LABORATÓRIO DE CRIAÇÃO",
+        "BPRI-2-11 - LABORATÓRIO DE MATERIAIS",
+        "BPRI-2-12 - LABORATÓRIO DE MAQUETARIA",
+        "BPRI-2-12 -- LABORATÓRIO DE MAQUETARIA",
+        "BPRI-2-13 - SALA DE AULA",
+        "BPRI-2-14 - SALA DE AULA",
+        "BPRI-2-15 - LABORATÓRIO DE CONFORTO AMBIENTAL",
+        "BPRI-2-15 - LABORATÓRIO DE CONFORTO AMBIENTAL",
+        "BPRI-2-16 - SALA DE AULA",
+        "BPRI-2-17 SALA DE AULA",
+        "BPRI-2-18 SALA DE AULA",
+        "BPRI-2-19 - LABORATÓRIO DE DESENHO 01",
+        "BPRI-2-20 - LABORATÓRIO DE DESENHO 02",
+        "BPRI-2-21 - LABORATÓRIO DE DESENHO 03",
+        "BPRI-2-22 SALA DE AULA",
+        "BPRI-2-23 - COOR DO CUR SUP BACHARELADO EM ENGENHARIA CIVIL",
+        "BPRI-2-24 - SALA DOS PROFESSORES DO CUR SUP BACHARELADO EM ENGENHARIA CIVIL",
+        "BPRI-2-25 SALA DE AULA",
+        "BPRI-2-26 SALA DE AULA",
+        "BPRI-2-27 - CENTRO ACADÊMICO DO BACHARELADO EM ENGENHARIA CIVIL",
+        "BPRI-2-28 SALA DE AULA",
+        "BPRI-2-29 SALA DE AULA",
+        "BPRI-2-30 SALA DE AULA",
+        "BPRI-2-31 SALA DE AULA",
+        "BPRI-T - CORREDOR PRINCIPAL - TÉRREO",
+        "BPRI-T-01- HALL DE ACESSO",
+        "BPRI-T-01-01 - COORDENAÇÃO DE PROTOCOLO",
+        "BPRI-T-01-02 - SALA DE VIGILÂNCIA",
+        "BPRI-T-01-03 - COORD DE SEGURANÇA DO TRABALHO",
+        "BPRI-T-01-04 - SALA DE MONITORAMENTO",
+        "BPRI-T-01-05 - SALA DE ARQUIVO (COORD. DE PROTOCOLO)",
+        "BPRI-T-01-06 - SALA DOS PROFESSORES - COLIC",
+        "BPRI-T-02-01 - COPA - COLIC",
+        "BPRI-T-02-03 - SALA DE ESTUDOS - COLIC",
+        "BPRI-T-02-04 - COORDENAÇÃO DE LINGUAGENS E CÓDIGOS - COLIC",
+        "BPRI-T-03 - NÚCLEO DE GÊNERO, DIVERSIDADE E SEXUALIDADE (NUGEDIF)",
+        "BPRI-T-04 - COORDENAÇÃO DE DESIGN",
+        "BPRI-T-04-01 - SALA DA COORDENAÇÃO DE ARTESANATO",
+        "BPRI-T-06 - SALA DOS PROFESSORES DE MATEMÁTICA E EIXO PEDAGÓGICO",
+        "BPRI-T-07 - SALA DOS PROFESSORES - TURISMO E HOTELARIA",
+        "BPRI-T-08 - COORD DE TURISMO E HOTELARIA/CMAC",
+        "BPRI-T-09 - SALA DOS PROFESSORES DE FÍSICA- TÉRREO",
+        "BPRI-T-10 - SALA DOS PROFESSORES DE FÍSICA (ANEXO DA SALA BPRI-T-09)",
+        "BPRI-T-11 - COOR DO CUR TEC EM SEGURANÇA DO TRABALHO",
+        "BPRI-T-12 - SETOR DE NUTRIÇÃO",
+        "BPRI-T-13 - COORD POLO UAB",
+        "BPRI-T-14 - COORDENAÇÃO DAS LICENCIATURAS",
+        "BPRI-T-16 - ARQUIVO CTI",
+        "BPRI-T-17 - SALA DE ARQUIVO DAA/DAE",
+        "BPRI-T-18 - ALMOXARIFADO DAA",
+        "BPRI-T-19 - DIRETORIA DE APOIO ACADEMICO",
+        "BPRI-T-20 - DEPARTAMENTO DE ASSISTENCIA ESTUDANTIL",
+        "BPRI-T-22 - SETOR DE SERVIÇO SOCIAL",
+        "BPRI-T-23 - SETOR MÉDICO / ODONTOLÓGICO",
+        "BPRI-T-24 - SETOR ODONTOLÓGICO",
+        "BPRI-T-25 - SETOR DE PSICOLOGIA",
+        "BPRI-T-26 - COORDENAÇÃO PEDAGÓGICA",
+        "BPRI-T-29 - COLAB - LABORATÓRIO COMPARTILHADO DE PESQUISA E INOVAÇÃO - CMAC",
+        "BPRI-T-31 - COLAB - LABORATÓRIO COMPARTILHADO DE PESQUISA E INOVAÇÃO - CMAC - MACEIÓ",
+        "BQUI-1-02 - LABORATÓRIO DE FÍSICA - 02",
+        "BQUI-1-03 - LABORATÓRIO DE FÍSICA - 03",
+        "BQUI-1-04 - LABORATÓRIO DE BIOLOGIA",
+        "BQUI-1-05 - LABORATÓRIO DE FÍSICA - 04 E 05",
+        "BQUI-1-06 - LABORATÓRIO DE FÍSICA",
+        "BQUI-1-07 - SALA DE AULA - QUÍMICA",
+        "BQUI-1-08 - SALA DE AULA - QUÍMICA",
+        "BQUI-1-09 - ALMOXARIFADO - QUÍMICA",
+        "BQUI-1-10 - SALA DE AULA - QUÍMICA",
+        "BQUI-1-11 - SALA DE AULA - QUÍMICA",
+        "BQUI-1-12 - NÚCLEO DE ESTUDOS AVANÇADOS DE CROMATOGRAFIA - NEAC",
+        "BQUI-1-13 - SALA DE AULA - QUÍMICA",
+        "BQUI-1-14 - SALA DE AULA - QUÍMICA",
+        "BQUI-1-15 - DEPÓSITO DE QUÍMICA",
+        "BQUI-1-16 - SALA DE AULA - QUÍMICA",
+        "BQUI-1-17 - COORD DE QUÍMICA - SALA DOS PROFESSORES",
+        "BQUI-2- CORREDOR PRINCIPAL DE QUÍMICA",
+        "BQUI-2-01 - LAB 01 - BIOPROCESSOS",
+        "BQUI-2-02 - LAB 02 - ANÁLISE INSTRUMENTAL",
+        "BQUI-2-03 - SALA DOS TÉCNICOS",
+        "BQUI-2-04 - LAB 03 - BROMATOLOGIA",
+        "BQUI-2-05 - LAB 04 - MICROBIOLOGIA",
+        "BQUI-2-06 - LABORATÓRIO DE PESQUISA",
+        "BQUI-2-07 - LAB 05 - PROCESSOS",
+        "BQUI-2-08 - LAB 08 - PRÁTICAS",
+        "BQUI-2-09 - LAB 09 - ESPECTROSCOPIA",
+        "BQUI-2-10 - LAB 07 - ORGÂNICA E ANALÍTICA",
+        "BQUI-2-11 - LAB 08 - ELETROANALÍTICA",
+        "BQUI-2-12 - ALMOXARIFADO",
+        "BQUI-T-03 - LAB 11 - MICROSCOPIA",
+        "BQUI-T-09 - CANTINA",
+        "BQUI-T-10 - REFEITÓRIO E COZINHA - SANE",
+        "BQUI-T-14 - LABORATÓRIO DE ALIMENTOS/CMAC",
+        "COORD DE RELAÇÕES EMPRESARIAIS E EGRESSOS",
+        "COORDENAÇÃO DE BIBLIOTECA",
+        "COORDENAÇÃO DE NAPNE/CMAC",
+        "COORDENAÇÃO DO CURSO TÉCNICO EM MECÂNICA",
+        "COORDENAÇÃO DOS TÉCNICOS DE LABORATÓRIO - EDIFICAÇÕES",
+        "COORDENADORIA DE BIBLIOTECA/CMAC",
+        "COORDENADORIA DE TRANSPORTES",
+        "CORREDOR BLOCO DE QUÍMICA",
+        "DEPÓSITO GINÁSIO - EDUCAÇÃO FÍSICA",
+        "DESFAZIMENTO - BENS GINÁSIO",
+        "DESFAZIMENTO - BENS GINÁSIO QUE ESTAVAM NA SALA BIND-T-17 DE MECÂNICA",
+        "DESFAZIMENTO DE EQUIPAMENTOS DE INFORMÁTICA",
+        "GABINETE DOS PROFESSORES - INFORMÁTICA",
+        "GABINETE DOS PROFESSORES 01 - EDIFICAÇÕES",
+        "GINÁSIO DE ESPORTES - EDUCAÇÃO FÍSICA",
+        "GRÊMIO",
+        "LAB. DE INSTALAÇÕES HIDRO-SANITÁRIAS - EDIFICAÇÕES",
+        "LABORATÓRIO 01 - INFORMÁTICA",
+        "LABORATÓRIO 01 - SEGURANÇA DO TRABALHO",
+        "LABORATÓRIO 02 - INFORMÁTICA",
+        "LABORATÓRIO 03 - INFORMÁTICA",
+        "LABORATÓRIO 04 - INFORMÁTICA",
+        "LABORATÓRIO 05 - INFORMÁTICA",
+        "LABORATÓRIO 06 - INFORMÁTICA",
+        "LABORATÓRIO 07 - INFORMÁTICA",
+        "LABORATÓRIO DE BIOLOGIA GERAL",
+        "LABORATÓRIO DE COMPUTAÇÃO GRÁFICA - SALA - 211",
+        "LABORATÓRIO DE COMPUTAÇÃO GRÁFICA 05",
+        "LABORATÓRIO DE DESENHO 01 - EDIFICAÇÕES",
+        "LABORATÓRIO DE DESENHO 02 - EDIFICAÇÕES",
+        "LABORATÓRIO DE DESENHO 03 - EDIFICAÇÕES",
+        "LABORATÓRIO DE ENSAIOS E MATERIAIS DE CONSTRUÇÕES - EDIFICAÇÕES",
+        "LABORATÓRIO DE EXPRESSÃO GRÁFICA - SALA 209",
+        "LABORATÓRIO DE FÍSICA - 05",
+        "LABORATÓRIO DE FÍSICA - 08",
+        "LABORATÓRIO DE PROCESSAMENTO - EDIFICAÇÕES",
+        "LABORATÓRIO DE LICENCIATURA EM FÍSICA",
+        "LABORATÓRIO DE MANUTENÇÃO BIND-T-33",
+        "LABORATÓRIO DE MÁQUINAS OPERATRIZES",
+        "LABORATÓRIO DE MATERIAIS - FÍSICA",
+        "LABORATÓRIO DE MECÂNICA DOS SOLOS E GEOTECNIA - EDIFICAÇÕES",
+        "LABORATÓRIO DE PAVIMENTAÇÃO - EDIFICAÇÕES",
+        "LABORATÓRIO DE SOLOS E GEOTECNIA - CONSTRUÇÃO CIVIL",
+        "LABORATÓRIO E OFICINA DE DESIGN DE INTERIORES - SALA - 208",
+        "LIFE ACADÊMICO - COORDENAÇÃO DAS LICENCIATURAS",
+        "LIVROS DESCARTADOS 2018",
+        "MONITORIA - INFORMÁTICA",
+        "NÚCLEO DE EMPRESAS JUNIORES",
+        "OFICINA DE FÍSICA",
+        "P1 - PORTARIA PRINCIPAL (ENTRADA DE VEÍCULOS)",
+        "P2 - PORTARIA DOS FUNDOS (SAÍDA DE VEÍCULOS)",
+        "P3 - PORTARIA DOS FUNDOS (ACESSO AO ALMOXARIFADO)",
+        "PÁTIO E CORREDORES DO CAMPUS MACEIÓ",
+        "PORTARIA DE ENTRADA DOS ALUNOS",
+        "PRÁTICAS INTEGRATIVAS COMPLEMENTARES EM SAÚDE - PICS",
+        "PROCESSO DE DOAÇÃO",
+        "PROJETO SIGA - INFORMÁTICA",
+        "PRONATEC",
+        "REFEITÓRIO 02",
+        "SALA 002/CMAC",
+        "SALA 09 - EDIFICAÇÕES",
+        "SALA 203",
+        "SALA 204",
+        "SALA 215",
+        "SALA 220",
+        "SALA 221",
+        "SALA 222",
+        "SALA 223",
+        "SALA 224",
+        "SALA 225",
+        "SALA ANEXO CTI PRÓXIMA BIBLIOTECA",
+        "SALA DA COORDENAÇÃO - SEGURANÇA DO TRABALHO",
+        "SALA DA COORDENAÇÃO DE CIÊNCIAS HUMANAS",
+        "SALA DA COORDENAÇÃO DE LIC E CIÊN BIOLÓGICAS",
+        "SALA DA COORDENAÇÃO DE PEDAGOGIA/CMAC",
+        "SALA DA CTI",
+        "SALA DE AULA ( MANUTENÇÃO DE MOTOS)",
+        "SALA DE AULA - 207 - DESIGN",
+        "SALA DE AULA 03 - EDIFICAÇÕES",
+        "SALA DE AULA 2 INFORMÁTICA - TÉRREO",
+        "SALA DE PROJETOS E PESQUISA - INFORMÁTICA",
+        "SALA DESFAZIMENTO - PRÓXIMO BANHEIRO MECÂNICA",
+        "SALA DOS MONITORES - EDIFICAÇÕES",
+        "SALA DOS PROFESSORES - INFORMÁTICA",
+        "SALA DOS TÉCNICOS DE MECÂNICA",
+        "SEGURANÇA DO TRABALHO"
+    ];
+
+    return {
+        DB_NAME,
+        DB_VERSION,
+        STORE_NAME,
+        CSV_URL,
+        CHEFIAS,
+        LOCALIZACOES
+    };
+})();
+
+/**
+ * ==============================================================================
+ * MODULO 2: GERENCIAMENTO DE CONSULTA CSV (CatalogModule)
+ * ==============================================================================
+ */
+const CatalogModule = (function (Config) {
+    const mapaBens = new Map();
+    let carregado = false;
+
+    async function carregarCatalogo(onStatusUpdate) {
+        try {
+            if (onStatusUpdate) onStatusUpdate("Baixando catálogo de bens do servidor...");
+            
+            const response = await fetch(Config.CSV_URL);
+            if (!response.ok) {
+                throw new Error(`Erro HTTP ${response.status}`);
+            }
+
+            const textoCSV = await response.text();
+            processarCSV(textoCSV);
+            carregado = true;
+
+            if (onStatusUpdate) onStatusUpdate(`Catálogo carregado (${mapaBens.size} bens).`, "green");
+        } catch (erro) {
+            console.warn("Não foi possível carregar o arquivo CSV:", erro);
+            if (onStatusUpdate) onStatusUpdate("Aviso: 'bens.csv' não encontrado ou inacessível no servidor.", "#b8860b");
+        }
+    }
+
+    function processarCSV(texto) {
+        const linhas = texto.split(/\r?\n/);
+
+        linhas.forEach(linha => {
+            if (!linha.trim()) return;
+
+            const separador = linha.includes(';') ? ';' : ',';
+            const colunas = linha.split(separador);
+
+            if (colunas.length >= 2) {
+                const numero = colunas[0].trim().replace(/^"(.*)"$/, '$1');
+                const descricao = colunas[1].trim().replace(/^"(.*)"$/, '$1');
+
+                if (numero) {
+                    mapaBens.set(numero, descricao);
+                }
+            }
+        });
+    }
+
+    function buscarDescricao(numero) {
+        if (!numero) return null;
+        return mapaBens.get(String(numero).trim()) || null;
+    }
+
+    function isCarregado() {
+        return carregado;
+    }
+
+    return {
+        carregarCatalogo,
+        buscarDescricao,
+        isCarregado
+    };
+})(ConfigModule);
+
+/**
+ * ==============================================================================
+ * MODULO 3: FUNÇÕES UTILITÁRIAS (UtilsModule)
+ * ==============================================================================
+ */
+const UtilsModule = (function () {
+    function normalizarTexto(texto) {
+        if (!texto) return "";
+        return texto
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase();
+    }
+
+    function escaparHTML(texto) {
+        if (texto === null || texto === undefined) return "";
+        return String(texto)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function escaparCSV(valor) {
+        if (valor === null || valor === undefined) return '""';
+        return '"' + String(valor).replace(/"/g, '""') + '"';
+    }
+
+    function limparNomeArquivo(nome) {
+        if (!nome) return "sem_nome";
+        return String(nome)
+            .replace(/[\\/:*?"<>|]/g, "_")
+            .replace(/\s+/g, "_");
+    }
+
+    function formatarDataHora(timestamp) {
+        if (!timestamp) return "";
+        const data = new Date(timestamp);
+        return data.toLocaleString("pt-BR");
+    }
+
+    return {
+        normalizarTexto,
+        escaparHTML,
+        escaparCSV,
+        limparNomeArquivo,
+        formatarDataHora
+    };
+})();
+
+/**
+ * ==============================================================================
+ * MODULO 4: GERENCIAMENTO DE BANCO DE DADOS (DatabaseModule)
+ * ==============================================================================
+ */
+const DatabaseModule = (function (Config) {
+    let dbInstance = null;
+
+    function inicializar() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(Config.DB_NAME, Config.DB_VERSION);
+
+            request.onupgradeneeded = function (event) {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains(Config.STORE_NAME)) {
+                    db.createObjectStore(Config.STORE_NAME, {
+                        keyPath: "id",
+                        autoIncrement: true
+                    });
+                }
+            };
+
+            request.onsuccess = function (event) {
+                dbInstance = event.target.result;
+                resolve(dbInstance);
+            };
+
+            request.onerror = function () {
+                reject(request.error);
+            };
+
+            request.onblocked = function () {
+                alert("O banco está bloqueado por outra janela/aba aberta.");
+            };
+        });
+    }
+
+    function adicionarRegistro(registro) {
+        return new Promise((resolve, reject) => {
+            if (!dbInstance) return reject(new Error("Banco de dados não pronto."));
+            const transaction = dbInstance.transaction([Config.STORE_NAME], "readwrite");
+            const store = transaction.objectStore(Config.STORE_NAME);
+            const request = store.add(registro);
+
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    function obterTodosRegistros() {
+        return new Promise((resolve, reject) => {
+            if (!dbInstance) return reject(new Error("Banco de dados não pronto."));
+            const transaction = dbInstance.transaction([Config.STORE_NAME], "readonly");
+            const store = transaction.objectStore(Config.STORE_NAME);
+            const request = store.getAll();
+
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    function removerRegistro(id) {
+        return new Promise((resolve, reject) => {
+            if (!dbInstance) return reject(new Error("Banco de dados não pronto."));
+            const transaction = dbInstance.transaction([Config.STORE_NAME], "readwrite");
+            const store = transaction.objectStore(Config.STORE_NAME);
+            const request = store.delete(id);
+
+            request.onsuccess = () => resolve(true);
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    function atualizarRegistro(registro) {
+        return new Promise((resolve, reject) => {
+            if (!dbInstance) return reject(new Error("Banco de dados não pronto."));
+            const transaction = dbInstance.transaction([Config.STORE_NAME], "readwrite");
+            const store = transaction.objectStore(Config.STORE_NAME);
+            const request = store.put(registro);
+
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    function getDB() {
+        return dbInstance;
+    }
+
+    return {
+        inicializar,
+        adicionarRegistro,
+        obterTodosRegistros,
+        removerRegistro,
+        atualizarRegistro,
+        getDB
+    };
+})(ConfigModule);
+
+/**
+ * ==============================================================================
+ * MODULO 5: PREFERÊNCIAS LOCAIS (StorageModule)
+ * ==============================================================================
+ */
+const StorageModule = (function () {
+    const KEYS = {
+        LOCALIZACAO: "ultimaLocalizacao",
+        CHEFIA: "ultimaChefia",
+        MEMBRO: "ultimoMembro",
+        DESCRICAO: "ultimaDescricao",
+						// -----------------------------------------------------------------
+						// ETAPA 4: CHAVE DO LOCALSTORAGE
+						DESCRICAO_ANTERIOR: "ultimaDescricaoAnterior",
+						// -----------------------------------------------------------------
+						
+						
+						
+						// -----------------------------------------------------------------
+						// ETAPA 4: NOVA CHAVE CHK
+						DIFERENCA_RELEVANTE: "ultimaDiferencaRelevante"
+						// -----------------------------------------------------------------
+						
+						
+						
+    };
+
+    function salvarPreferencias(localizacao, chefia, membro, descricao) {
+        localStorage.setItem(KEYS.LOCALIZACAO, localizacao);
+        localStorage.setItem(KEYS.CHEFIA, chefia);
+        localStorage.setItem(KEYS.MEMBRO, membro);
+        localStorage.setItem(KEYS.DESCRICAO, descricao);
+		
+		
+		
+					// -----------------------------------------------------------------
+					// ETAPA 4: SALVANDO O VALOR
+					localStorage.setItem(KEYS.DESCRICAO_ANTERIOR, descricaoanterior);
+					// -----------------------------------------------------------------
+					
+					
+					// Salva "true" ou "false" no localStorage
+					localStorage.setItem(KEYS.DIFERENCA_RELEVANTE, diferencaRelevante ? "true" : "false");
+		
+		
+		
+    }
+
+    function obterPreferencias() {
+        return {
+            localizacao: localStorage.getItem(KEYS.LOCALIZACAO) || "",
+            chefia: localStorage.getItem(KEYS.CHEFIA) || "",
+            membro: localStorage.getItem(KEYS.MEMBRO) || "",
+            descricao: localStorage.getItem(KEYS.DESCRICAO) || "",
+			
+			
+			// -----------------------------------------------------------------
+            // ETAPA 4: RECUPERANDO O VALOR
+            descricaoanterior: localStorage.getItem(KEYS.DESCRICAO_ANTERIOR) || "",
+            // -----------------------------------------------------------------
+			
+			
+			
+			// Retorna o booleano convertido
+            diferencaRelevante: localStorage.getItem(KEYS.DIFERENCA_RELEVANTE) === "true"
+			
+			
+        };
+    }
+
+    return {
+        salvarPreferencias,
+        obterPreferencias
+    };
+})();
+
+/**
+ * ==============================================================================
+ * MODULO 6: GERENCIAMENTO DE MÍDIA / FOTOS (PhotoModule)
+ * ==============================================================================
+ */
+const PhotoModule = (function () {
+    let arquivosAcumulados = [];
+    let urlsCriadas = [];
+
+    function adicionarArquivos(filesList) {
+        const novos = Array.from(filesList);
+        arquivosAcumulados = arquivosAcumulados.concat(novos);
+    }
+
+    function limparArquivos() {
+        arquivosAcumulados = [];
+        limparURLs();
+    }
+
+    function obterArquivos() {
+        return arquivosAcumulados;
+    }
+
+    function limparURLs() {
+        urlsCriadas.forEach(url => URL.revokeObjectURL(url));
+        urlsCriadas = [];
+    }
+
+    function renderizarPreview(containerElement) {
+        limparURLs();
+        containerElement.innerHTML = "";
+
+        arquivosAcumulados.forEach(arquivo => {
+            const url = URL.createObjectURL(arquivo);
+            urlsCriadas.push(url);
+
+            const img = document.createElement("img");
+            img.src = url;
+            containerElement.appendChild(img);
+        });
+    }
+
+    async function arquivoParaBlob(arquivo) {
+        const buffer = await arquivo.arrayBuffer();
+        return new Blob([buffer], { type: arquivo.type });
+    }
+
+    async function processarFotosParaRegistro() {
+        const fotosProcessadas = [];
+        for (const arquivo of arquivosAcumulados) {
+            const blob = await arquivoParaBlob(arquivo);
+            fotosProcessadas.push({
+                nome: arquivo.name,
+                tipo: arquivo.type,
+                tamanho: arquivo.size,
+                blob: blob
+            });
+        }
+        return fotosProcessadas;
+    }
+
+    function obterExtensaoFoto(foto) {
+        if (foto.nome) {
+            const partes = foto.nome.split(".");
+            if (partes.length > 1) return partes.pop().toLowerCase();
+        }
+        if (foto.tipo) {
+            const tipo = foto.tipo.split("/")[1];
+            if (tipo) return tipo.replace("jpeg", "jpg").toLowerCase();
+        }
+        return "jpg";
+    }
+
+    return {
+        adicionarArquivos,
+        limparArquivos,
+        obterArquivos,
+        renderizarPreview,
+        processarFotosParaRegistro,
+        obterExtensaoFoto
+    };
+})();
+
+/**
+ * ==============================================================================
+ * MODULO 7: EXPORTAÇÃO E GERAÇÃO DE ARQUIVOS (ExportModule)
+ * ==============================================================================
+ */
+const ExportModule = (function (Database, PhotoUtils, Utils) {
+
+    async function gerarZIP() {
+        const registros = await Database.obterTodosRegistros();
+
+        if (!registros || registros.length === 0) {
+            alert("Não existem registros para exportar.");
+            return;
+        }
+
+        const zip = new JSZip();
+        const pastaFotos = zip.folder("fotos");
+        //let csvContent = "ID;Patrimônio;Estado;Descrição;Chefia;Localização;Membro;Data;Imagens\n";
+		
+						// Cabeçalho atualizado do CSV:
+				//let csvContent = "ID;Patrimônio;Estado;Descrição;Descrição Anterior;Chefia;Localização;Membro;Data;Imagens\n";
+
+
+						// 1. Cabeçalho atualizado:
+						let csvContent = "ID;Patrimônio;Estado;Descrição;Descrição Anterior;Diferença Relevante;Chefia;Localização;Membro;Data;Imagens\n";
+
+						// 2. Linhas de dados (converte true/false para 'SIM' ou 'NÃO' no arquivo exportado):
+						const textoDiferenca = registro.DiferencaRelevanteNoBem ? "SIM" : "NÃO";
+
+
+
+
+        registros.forEach(registro => {
+            const caminhosFotos = [];
+
+            if (registro.fotos && registro.fotos.length > 0) {
+                registro.fotos.forEach((foto, indice) => {
+                    const extensao = PhotoUtils.obterExtensaoFoto(foto);
+                    const patrimonioLimpo = Utils.limparNomeArquivo(registro.patrimonio || "sem_patrimonio");
+                    const nomeFoto = `patrimonio_${patrimonioLimpo}_${indice + 1}.${extensao}`;
+                    const caminho = `fotos/${nomeFoto}`;
+
+                    caminhosFotos.push(caminho);
+                    pastaFotos.file(nomeFoto, foto.blob);
+                });
+            }
+
+            csvContent +=
+                Utils.escaparCSV(registro.id) + ";" +
+                Utils.escaparCSV(registro.patrimonio) + ";" +
+                Utils.escaparCSV(registro.estado) + ";" +
+                Utils.escaparCSV(registro.descricao) + ";" +
+				
+						// Adicionado aqui
+						Utils.escaparCSV(registro.descricaoanterior) + ";" + 
+						
+						// Adicionado no CSV
+						Utils.escaparCSV(textoDiferenca) + ";" + // Adicionado no CSV
+						
+				
+				
+                Utils.escaparCSV(registro.chefia) + ";" +
+                Utils.escaparCSV(registro.localizacao) + ";" +
+                Utils.escaparCSV(registro.membro) + ";" +
+                Utils.escaparCSV(registro.timestamp) + ";" +
+                Utils.escaparCSV(caminhosFotos.join(", ")) + "\n";
+        });
+
+        zip.file("inventario.csv", "\uFEFF" + csvContent);
+
+        const conteudoZIP = await zip.generateAsync({ type: "blob" });
+        fazerDownloadZIP(conteudoZIP);
+    }
+
+    function fazerDownloadZIP(blob) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+
+        const membroInput = document.getElementById("membro").value.trim();
+        const membroAtual = membroInput || StorageModule.obterPreferencias().membro || "sem_membro";
+
+        const agora = new Date();
+        const dataStr = agora.getFullYear().toString() +
+            String(agora.getMonth() + 1).padStart(2, "0") +
+            String(agora.getDate()).padStart(2, "0") + "_" +
+            String(agora.getHours()).padStart(2, "0") +
+            String(agora.getMinutes()).padStart(2, "0");
+
+        const nomeArquivo = `inventario_${Utils.limparNomeArquivo(membroAtual)}_${dataStr}.zip`;
+
+        link.download = nomeArquivo;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    }
+
+    return {
+        gerarZIP
+    };
+})(DatabaseModule, PhotoModule, UtilsModule);
+
+/**
+ * ==============================================================================
+ * MODULO 8: INTERFACE DE USUÁRIO E EVENTOS (UIModule)
+ * ==============================================================================
+ */
+const UIModule = (function (Config, Catalog, Database, Storage, Photo, Export, Utils) {
+    const DOM = {};
+
+    function mapearElementos() {
+        DOM.form = document.getElementById("formInventario");
+        DOM.statusBanco = document.getElementById("statusBanco");
+        DOM.statusCsv = document.getElementById("statusCsv");
+        DOM.salvarBtn = document.getElementById("salvarBtn");
+        DOM.listarBtn = document.getElementById("listarBtn");
+        DOM.exportarBtn = document.getElementById("exportarBtn");
+        DOM.listaRegistros = document.getElementById("listaRegistros");
+        DOM.previewFotos = document.getElementById("previewFotos");
+        DOM.cameraInput = document.getElementById("camera");
+        DOM.fotosInput = document.getElementById("fotos");
+        DOM.btnCamera = document.getElementById("btnCamera");
+        DOM.btnGaleria = document.getElementById("btnGaleria");
+        
+        DOM.buscarChefiaInput = document.getElementById("buscarChefia");
+        DOM.resultadosChefia = document.getElementById("resultadosChefia");
+        DOM.campoChefia = document.getElementById("chefia");
+
+        DOM.buscarLocalizacaoInput = document.getElementById("buscarLocalizacao");
+        DOM.resultadosLocalizacao = document.getElementById("resultadosLocalizacao");
+        DOM.campoLocalizacao = document.getElementById("localizacao");
+
+        DOM.patrimonioInput = document.getElementById("patrimonio");
+        DOM.estadoSelect = document.getElementById("estado");
+        DOM.descricaoInput = document.getElementById("descricao");
+        DOM.membroInput = document.getElementById("membro");
+		
+		
+		
+						// -----------------------------------------------------------------
+					// MAPEAMENTO DO NOVO CAMPO (Formulário Principal)
+					DOM.descricaoanteriorInput = document.getElementById("descricaoanterior");
+					// -----------------------------------------------------------------
+						
+		
+		
+						// -----------------------------------------------------------------
+					// MAPEAMENTO DA CHECKBOX (Formulário Principal)
+					DOM.diferencaRelevanteCheckbox = document.getElementById("DiferencaRelevanteNoBem");
+					// -----------------------------------------------------------------
+						
+		
+		
+
+        // Elementos do Modal
+        DOM.modalEdicao = document.getElementById("modalEdicao");
+        DOM.fecharModal = document.getElementById("fecharModal");
+        DOM.formEdicao = document.getElementById("formEdicao");
+        DOM.editId = document.getElementById("editId");
+        DOM.editPatrimonio = document.getElementById("editPatrimonio");
+        DOM.editEstado = document.getElementById("editEstado");
+        DOM.editDescricao = document.getElementById("editDescricao");
+        DOM.editChefia = document.getElementById("editChefia");
+        DOM.editLocalizacao = document.getElementById("editLocalizacao");
+        DOM.editMembro = document.getElementById("editMembro");
+		
+		
+		
+						// -----------------------------------------------------------------
+					// MAPEAMENTO DO NOVO CAMPO (Modal de Edição)
+					DOM.editDescricaoanterior = document.getElementById("editDescricaoanterior");
+					// -----------------------------------------------------------------
+						
+		
+							
+						// -----------------------------------------------------------------
+					// MAPEAMENTO DA CHECKBOX (Modal de Edição)
+					DOM.editDiferencaRelevanteCheckbox = document.getElementById("editDiferencaRelevanteNoBem");
+					// -----------------------------------------------------------------
+						
+		
+		
+		
+		
+		
+    }
+
+    function atualizarStatusBanco(sucesso, mensagem) {
+        DOM.statusBanco.textContent = mensagem;
+        if (sucesso) {
+            DOM.statusBanco.style.background = "#d4edda";
+            DOM.statusBanco.style.color = "#155724";
+            DOM.salvarBtn.disabled = false;
+            DOM.listarBtn.disabled = false;
+            DOM.exportarBtn.disabled = false;
+        } else {
+            DOM.statusBanco.style.background = "#f8d7da";
+            DOM.statusBanco.style.color = "#721c24";
+        }
+    }
+
+    function atualizarStatusCsv(mensagem, cor) {
+        DOM.statusCsv.textContent = mensagem;
+        if (cor) DOM.statusCsv.style.color = cor;
+    }
+
+    function configurarBuscaPatrimonioCSV() {
+        DOM.patrimonioInput.addEventListener("input", function () {
+            const numero = this.value.trim();
+            if (!numero) return;
+
+            const descricaoEncontrada = Catalog.buscarDescricao(numero);
+            if (descricaoEncontrada) {
+										// -----------------------------------------------------------------
+									// ALTERAÇÃO: Preenche o campo 'descricaoanterior' em vez de 'descricao'
+									DOM.descricaoanteriorInput.value = descricaoEncontrada;
+									// -----------------------------------------------------------------
+            }
+        });
+    }
+
+    function configurarBuscaChefia() {
+        DOM.buscarChefiaInput.addEventListener("input", function () {
+            const textoBusca = Utils.normalizarTexto(this.value.trim());
+            DOM.resultadosChefia.innerHTML = "";
+
+            if (!textoBusca) {
+                DOM.resultadosChefia.style.display = "none";
+                return;
+            }
+
+            const encontrados = Config.CHEFIAS.filter(chefia =>
+                Utils.normalizarTexto(chefia).includes(textoBusca)
+            );
+
+            if (encontrados.length === 0) {
+                DOM.resultadosChefia.innerHTML = '<div class="sem-resultado">Nenhuma chefia encontrada.</div>';
+                DOM.resultadosChefia.style.display = "block";
+                return;
+            }
+
+            encontrados.forEach(chefia => {
+                const item = document.createElement("div");
+                item.className = "item-resultado";
+                item.textContent = chefia;
+
+                item.addEventListener("click", () => {
+                    DOM.campoChefia.value = chefia;
+                    DOM.buscarChefiaInput.value = chefia;
+                    DOM.resultadosChefia.innerHTML = "";
+                    DOM.resultadosChefia.style.display = "none";
+                });
+
+                DOM.resultadosChefia.appendChild(item);
+            });
+
+            DOM.resultadosChefia.style.display = "block";
+        });
+    }
+
+    function configurarBuscaLocalizacao() {
+        DOM.buscarLocalizacaoInput.addEventListener("input", function () {
+            const textoBusca = Utils.normalizarTexto(this.value.trim());
+            DOM.resultadosLocalizacao.innerHTML = "";
+
+            if (!textoBusca) {
+                DOM.resultadosLocalizacao.style.display = "none";
+                return;
+            }
+
+            const encontrados = Config.LOCALIZACOES.filter(local =>
+                Utils.normalizarTexto(local).includes(textoBusca)
+            );
+
+            if (encontrados.length === 0) {
+                DOM.resultadosLocalizacao.innerHTML = '<div class="sem-resultado">Nenhuma localização encontrada.</div>';
+                DOM.resultadosLocalizacao.style.display = "block";
+                return;
+            }
+
+            encontrados.forEach(local => {
+                const item = document.createElement("div");
+                item.className = "item-resultado";
+                item.textContent = local;
+
+                item.addEventListener("click", () => {
+                    DOM.campoLocalizacao.value = local;
+                    DOM.buscarLocalizacaoInput.value = local;
+                    DOM.resultadosLocalizacao.innerHTML = "";
+                    DOM.resultadosLocalizacao.style.display = "none";
+                });
+
+                DOM.resultadosLocalizacao.appendChild(item);
+            });
+
+            DOM.resultadosLocalizacao.style.display = "block";
+        });
+    }
+
+    function configurarFechamentoMenus() {
+        document.addEventListener("click", (event) => {
+            if (!event.target.closest(".campo-busca-dinamica")) {
+                DOM.resultadosChefia.style.display = "none";
+                DOM.resultadosLocalizacao.style.display = "none";
+            }
+        });
+    }
+
+    function configurarCapturaFotos() {
+        DOM.btnCamera.addEventListener("click", () => DOM.cameraInput.click());
+        DOM.btnGaleria.addEventListener("click", () => DOM.fotosInput.click());
+
+        const tratarSelecao = (inputElement) => {
+            Photo.adicionarArquivos(inputElement.files);
+            Photo.renderizarPreview(DOM.previewFotos);
+            inputElement.value = "";
+        };
+
+        DOM.cameraInput.addEventListener("change", function () { tratarSelecao(this); });
+        DOM.fotosInput.addEventListener("change", function () { tratarSelecao(this); });
+    }
+
+    async function submeterFormulario(event) {
+        event.preventDefault();
+
+        try {
+            const fotosProcessadas = await Photo.processarFotosParaRegistro();
+
+            const registro = {
+                patrimonio: DOM.patrimonioInput.value.trim(),
+				
+				
+					// -----------------------------------------------------------------
+						// ETAPA 3: INCLUSÃO DO NOVO CAMPO NO REGISTRO
+						descricaoanterior: DOM.descricaoanteriorInput.value.trim(),
+						// -----------------------------------------------------------------
+							
+				
+							// -----------------------------------------------------------------
+						// ETAPA 3: CAPTURA DO VALOR BOOLEANO (true/false)
+						DiferencaRelevanteNoBem: DOM.diferencaRelevanteCheckbox.checked,
+						// -----------------------------------------------------------------
+				
+				
+				
+				
+				
+                estado: DOM.estadoSelect.value,
+                descricao: DOM.descricaoInput.value.trim(),
+                chefia: DOM.campoChefia.value.trim(),
+                localizacao: DOM.campoLocalizacao.value.trim(),
+                membro: DOM.membroInput.value.trim(),
+                fotos: fotosProcessadas,
+                timestamp: new Date().toISOString()
+				
+				
+				
+						
+							
+				
+				
+				
+				
+				
+				
+            };
+
+            await Database.adicionarRegistro(registro);
+
+            Storage.salvarPreferencias(
+			registro.localizacao,
+			registro.chefia, 
+			registro.membro, 
+			registro.descricao,
+			
+										// Atualizado na Etapa 4 (passando o novo campo)
+										registro.descricaoanterior ,
+										
+										
+										registro.DiferencaRelevanteNoBem
+										
+										
+										
+										
+			);							
+										
+										
+            alert("Registro salvo com sucesso!");
+
+            DOM.patrimonioInput.value = "";
+			
+			
+											// Se desejar limpar a descrição anterior após salvar, descomente a linha abaixo:
+										// DOM.descricaoanteriorInput.value = "";
+										
+										
+			
+			                           // -----------------------------------------------------------------
+										// RESETA A CHECKBOX APÓS SALVAR
+										DOM.diferencaRelevanteCheckbox.checked = false;
+										// -----------------------------------------------------------------
+			
+			
+            Photo.limparArquivos();
+            DOM.previewFotos.innerHTML = "";
+
+            listarRegistros();
+
+        } catch (erro) {
+            console.error(erro);
+            alert("Erro ao salvar registro: " + erro.message);
+        }
+    }
+
+    let urlsListagemMemoria = [];
+
+    async function listarRegistros() {
+        DOM.listaRegistros.innerHTML = "Carregando registros...";
+
+        urlsListagemMemoria.forEach(url => URL.revokeObjectURL(url));
+        urlsListagemMemoria = [];
+
+        try {
+            const registros = await Database.obterTodosRegistros();
+            DOM.listaRegistros.innerHTML = "";
+
+            if (!registros || registros.length === 0) {
+                DOM.listaRegistros.innerHTML = "<p>Nenhum registro encontrado.</p>";
+                return;
+            }
+
+            registros.reverse().forEach(registro => {
+                const div = document.createElement("div");
+                div.className = "registro";
+
+                let html = "";
+                html += "<strong>Patrimônio:</strong> " + Utils.escaparHTML(registro.patrimonio) + "<br>";
+                html += "<strong>Estado:</strong> " + Utils.escaparHTML(registro.estado) + "<br>";
+				
+				
+				
+                //html += "<strong>Descrição:</strong> " + Utils.escaparHTML(registro.descricao) + "<br>";
+											// Dentro do loop de renderização dos registos em listarRegistros():
+							html += "<strong>Descrição:</strong> " + Utils.escaparHTML(registro.descricao) + "<br>";
+
+							// INCLUSÃO NA EXIBIÇÃO:
+							html += "<strong>Descrição Anterior:</strong> " + Utils.escaparHTML(registro.descricaoanterior) + "<br>";
+
+				
+				
+				
+							// -----------------------------------------------------------------
+							// EXIBIÇÃO DA CHECKBOX NO CARD
+							const temDiferenca = registro.DiferencaRelevanteNoBem ? "Sim" : "Não";
+							html += "<strong>Diferença Relevante:</strong> " + temDiferenca + "<br>";
+							// -----------------------------------------------------------------
+				
+				
+				
+				
+				
+				
+				html += "<strong>Chefia:</strong> " + Utils.escaparHTML(registro.chefia) + "<br>";
+				
+				
+				
+				
+				
+				
+                //html += "<strong>Chefia:</strong> " + Utils.escaparHTML(registro.chefia) + "<br>";
+				
+				
+				
+				
+                html += "<strong>Localização:</strong> " + Utils.escaparHTML(registro.localizacao) + "<br>";
+                html += "<strong>Membro:</strong> " + Utils.escaparHTML(registro.membro) + "<br>";
+                html += "<strong>Data/Hora:</strong> " + Utils.formatarDataHora(registro.timestamp) + "<br>";
+
+                div.innerHTML = html;
+
+                if (registro.fotos && registro.fotos.length > 0) {
+                    const fotosContainer = document.createElement("div");
+                    fotosContainer.className = "fotos-registro";
+
+                    registro.fotos.forEach(foto => {
+                        const url = URL.createObjectURL(foto.blob);
+                        urlsListagemMemoria.push(url);
+
+                        const img = document.createElement("img");
+                        img.src = url;
+                        img.className = "foto-registro";
+                        img.alt = "Foto do patrimônio";
+                        fotosContainer.appendChild(img);
+                    });
+
+                    div.appendChild(fotosContainer);
+                }
+
+                // Botão Editar
+                const btnEditar = document.createElement("button");
+                btnEditar.type = "button";
+                btnEditar.className = "btn-editar";
+                btnEditar.textContent = "✏️ Editar";
+                btnEditar.addEventListener("click", () => abrirModalEdicao(registro));
+                div.appendChild(btnEditar);
+
+                // Botão Excluir
+                const btnExcluir = document.createElement("button");
+                btnExcluir.type = "button";
+                btnExcluir.className = "btn-excluir";
+                btnExcluir.textContent = "🗑️ Excluir";
+                btnExcluir.addEventListener("click", async () => {
+                    const confirmou = confirm(`Deseja excluir o registro do patrimônio "${registro.patrimonio || 'Sem Patrimônio'}"?`);
+                    if (confirmou) {
+                        try {
+                            await Database.removerRegistro(registro.id);
+                            alert("Registro excluído!");
+                            listarRegistros();
+                        } catch (err) {
+                            alert("Erro ao excluir: " + err.message);
+                        }
+                    }
+                });
+                div.appendChild(btnExcluir);
+
+                DOM.listaRegistros.appendChild(div);
+            });
+
+        } catch (erro) {
+            console.error(erro);
+            DOM.listaRegistros.innerHTML = "<p>Erro ao listar registros.</p>";
+        }
+    }
+
+    function abrirModalEdicao(registro) {
+        DOM.editId.value = registro.id;
+        DOM.editPatrimonio.value = registro.patrimonio || "";
+        DOM.editEstado.value = registro.estado || "EM USO";
+        DOM.editDescricao.value = registro.descricao || "";
+		
+		
+						// INCLUSÃO NO MODAL:
+					DOM.editDescricaoanterior.value = registro.descricaoanterior || "";
+					
+					
+					
+					// -----------------------------------------------------------------
+					// POPULA A CHECKBOX NO MODAL (Garante booleano seguro)
+					DOM.editDiferencaRelevanteCheckbox.checked = Boolean(registro.DiferencaRelevanteNoBem);
+					// -----------------------------------------------------------------
+										
+		
+		
+		
+		
+        DOM.editChefia.value = registro.chefia || "";
+        DOM.editLocalizacao.value = registro.localizacao || "";
+        DOM.editMembro.value = registro.membro || "";
+
+        DOM.modalEdicao.style.display = "block";
+    }
+
+    function configurarEventosModal() {
+        DOM.fecharModal.addEventListener("click", () => {
+            DOM.modalEdicao.style.display = "none";
+        });
+
+        window.addEventListener("click", (e) => {
+            if (e.target === DOM.modalEdicao) {
+                DOM.modalEdicao.style.display = "none";
+            }
+        });
+
+        DOM.formEdicao.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            try {
+                const id = Number(DOM.editId.value);
+                const registros = await Database.obterTodosRegistros();
+                const registroOriginal = registros.find(r => r.id === id);
+
+                const registroAtualizado = {
+                    id: id,
+                    patrimonio: DOM.editPatrimonio.value.trim(),
+                    estado: DOM.editEstado.value,
+                    descricao: DOM.editDescricao.value.trim(),
+					
+					
+							// INCLUSÃO NA ATUALIZAÇÃO DO REGISTO:
+							descricaoanterior: DOM.editDescricaoanterior.value.trim(),
+							
+					
+					
+							// -----------------------------------------------------------------
+							// SALVA A ALTERAÇÃO FEITA NO MODAL
+							DiferencaRelevanteNoBem: DOM.editDiferencaRelevanteCheckbox.checked,
+							// -----------------------------------------------------------------
+											
+											
+					
+					
+					
+                    chefia: DOM.editChefia.value.trim(),
+                    localizacao: DOM.editLocalizacao.value.trim(),
+                    membro: DOM.editMembro.value.trim(),
+                    fotos: registroOriginal ? registroOriginal.fotos : [],
+                    timestamp: registroOriginal ? registroOriginal.timestamp : new Date().toISOString()
+                };
+
+                await Database.atualizarRegistro(registroAtualizado);
+
+                alert("Registro atualizado com sucesso!");
+                DOM.modalEdicao.style.display = "none";
+                listarRegistros();
+
+            } catch (erro) {
+                alert("Erro ao atualizar registro: " + erro.message);
+            }
+        });
+    }
+
+    function restaurarPreferencias() {
+        const prefs = Storage.obterPreferencias();
+        if (prefs.localizacao) {
+            DOM.campoLocalizacao.value = prefs.localizacao;
+            DOM.buscarLocalizacaoInput.value = prefs.localizacao;
+        }
+        if (prefs.chefia) {
+            DOM.campoChefia.value = prefs.chefia;
+            DOM.buscarChefiaInput.value = prefs.chefia;
+        }
+        if (prefs.membro) {
+            DOM.membroInput.value = prefs.membro;
+        }
+        if (prefs.descricao) {
+            DOM.descricaoInput.value = prefs.descricao;
+        }  
+		
+							// -----------------------------------------------------------------
+						// ETAPA 4: RESTAURANDO O CAMPO NA INTERFACE
+						if (prefs.descricaoanterior) {
+							DOM.descricaoanteriorInput.value = prefs.descricaoanterior;
+						}
+						// -----------------------------------------------------------------
+						
+						
+						// -----------------------------------------------------------------
+						// RESTAURA O ESTADO MARCADO/DESMARCADO
+						DOM.diferencaRelevanteCheckbox.checked = prefs.diferencaRelevante;
+						// -----------------------------------------------------------------
+						
+						
+						
+						
+		
+		
+		
+    }
+
+    function inicializarServiceWorker() {
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+                navigator.serviceWorker.register("sw.js")
+                    .then(() => console.log("Service Worker registrado."))
+                    .catch(erro => console.error("Erro no Service Worker:", erro));
+            });
+        }
+    }
+
+    function init() {
+        mapearElementos();
+        configurarBuscaPatrimonioCSV();
+        configurarBuscaChefia();
+        configurarBuscaLocalizacao();
+        configurarFechamentoMenus();
+        configurarCapturaFotos();
+        configurarEventosModal();
+
+        DOM.form.addEventListener("submit", submeterFormulario);
+        DOM.listarBtn.addEventListener("click", listarRegistros);
+        DOM.exportarBtn.addEventListener("click", () => {
+            Export.gerarZIP().catch(err => alert("Erro na exportação: " + err.message));
+        });
+
+        Catalog.carregarCatalogo(atualizarStatusCsv);
+
+        Database.inicializar()
+            .then(() => {
+                atualizarStatusBanco(true, "Banco de dados pronto.");
+                restaurarPreferencias();
+            })
+            .catch(erro => {
+                atualizarStatusBanco(false, "Erro ao acessar banco: " + erro.message);
+            });
+
+        inicializarServiceWorker();
+    }
+
+    return {
+        init
+    };
+
+})(ConfigModule, CatalogModule, DatabaseModule, StorageModule, PhotoModule, ExportModule, UtilsModule);
+
+document.addEventListener("DOMContentLoaded", UIModule.init);
+</script>
+
+</body>
+</html>
