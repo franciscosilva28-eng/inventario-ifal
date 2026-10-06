@@ -1,6 +1,6 @@
 const CACHE_NAME = "inventario-cache-v6";
 
-const ARQUIVOS = [
+const ARQUIVOS = [ 
     "inventario.html",
     "manifest.json",
     "jszip.min.js"
