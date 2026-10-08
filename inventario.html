@@ -1368,6 +1368,11 @@ const ExportModule = (function (Database, PhotoUtils, Utils) {
 
 
         registros.forEach(registro => {
+
+
+			// CORREÇÃO: Coloque a verificação aqui dentro
+			    const textoDiferenca = registro.DiferencaRelevanteNoBem ? "SIM" : "NÃO";
+			
             const caminhosFotos = [];
 
             if (registro.fotos && registro.fotos.length > 0) {
