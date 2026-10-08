@@ -1203,26 +1203,18 @@ const StorageModule = (function () {
 						
     };
 
-    function salvarPreferencias(localizacao, chefia, membro, descricao) {
-        localStorage.setItem(KEYS.LOCALIZACAO, localizacao);
-        localStorage.setItem(KEYS.CHEFIA, chefia);
-        localStorage.setItem(KEYS.MEMBRO, membro);
-        localStorage.setItem(KEYS.DESCRICAO, descricao);
-		
-		
-		
-					// -----------------------------------------------------------------
-					// ETAPA 4: SALVANDO O VALOR
-					localStorage.setItem(KEYS.DESCRICAO_ANTERIOR, descricaoanterior);
-					// -----------------------------------------------------------------
-					
-					
-					// Salva "true" ou "false" no localStorage
-					localStorage.setItem(KEYS.DIFERENCA_RELEVANTE, diferencaRelevante ? "true" : "false");
-		
-		
-		
-    }
+									// CORREÇÃO: Adicionado 'descricaoanterior' na assinatura da função
+								function salvarPreferencias(localizacao, chefia, membro, descricao, descricaoanterior, diferencaRelevante) {
+									localStorage.setItem(KEYS.LOCALIZACAO, localizacao);
+									localStorage.setItem(KEYS.CHEFIA, chefia);
+									localStorage.setItem(KEYS.MEMBRO, membro);
+									localStorage.setItem(KEYS.DESCRICAO, descricao);
+
+									// Agora a variável existe e pode ser salva corretamente:
+									localStorage.setItem(KEYS.DESCRICAO_ANTERIOR, descricaoanterior);
+
+									localStorage.setItem(KEYS.DIFERENCA_RELEVANTE, diferencaRelevante ? "true" : "false");
+								}
 
     function obterPreferencias() {
         return {
