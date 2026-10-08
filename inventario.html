@@ -1361,18 +1361,18 @@ const ExportModule = (function (Database, PhotoUtils, Utils) {
 						// 1. Cabeçalho atualizado:
 						let csvContent = "ID;Patrimônio;Estado;Descrição;Descrição Anterior;Diferença Relevante;Chefia;Localização;Membro;Data;Imagens\n";
 
-						// 2. Linhas de dados (converte true/false para 'SIM' ou 'NÃO' no arquivo exportado):
-						const textoDiferenca = registro.DiferencaRelevanteNoBem ? "SIM" : "NÃO";
+						
 
 
 
 
         registros.forEach(registro => {
-
-
-			// CORREÇÃO: Coloque a verificação aqui dentro
-			    const textoDiferenca = registro.DiferencaRelevanteNoBem ? "SIM" : "NÃO";
-			
+		
+		
+		// 2. Linhas de dados (converte true/false para 'SIM' ou 'NÃO' no arquivo exportado):
+						const textoDiferenca = registro.DiferencaRelevanteNoBem ? "SIM" : "NÃO";
+		
+		
             const caminhosFotos = [];
 
             if (registro.fotos && registro.fotos.length > 0) {
