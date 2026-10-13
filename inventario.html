@@ -99,7 +99,6 @@
             color: #666;
         }
 
-        /* Classes compartilhadas de busca dinâmica (Chefia e Localização) */
         .campo-busca-dinamica {
             position: relative;
         }
@@ -183,12 +182,41 @@
             margin-top: 10px;
         }
 
+        .foto-preview-item {
+            position: relative;
+            display: inline-block;
+        }
+
         .foto-preview img {
             width: 100px;
             height: 80px;
             object-fit: cover;
             border-radius: 5px;
             border: 1px solid #ccc;
+        }
+		
+        .btn-remover-preview {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #d9534f;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            margin: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .btn-remover-preview:hover {
+            background: #c9302c;
         }
 
         .separador {
@@ -249,54 +277,92 @@
         .btn-editar:hover { background: #025aa5; }
         .btn-excluir:hover { background: #c9302c; }
 		
-		
-		
-		
-									/* Container da Checkbox */
-							.form-group-checkbox {
-								display: flex;
-								align-items: center;
-								gap: 8px; /* Espaço entre a caixa e o texto */
-								margin-top: 10px;
-								margin-bottom: 15px;
-							}
+        .form-group-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
 
-							/* Garante que o label da checkbox fique alinhado na mesma linha */
-							.form-group-checkbox label {
-								display: flex;
-								align-items: center;
-								gap: 8px;
-								cursor: pointer;
-								font-weight: normal; /* ou bold, conforme seu padrão */
-								width: auto; /* Impede que o label ocupe 100% da largura */
-								margin: 0;
-							}
+        .form-group-checkbox label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-weight: normal;
+            width: auto;
+            margin: 0;
+        }
 
-							/* Garante que a caixinha não estique nem herde estilos de inputs de texto */
-							.form-group-checkbox input[type="checkbox"] {
-								width: 18px;
-								height: 18px;
-								margin: 0;
-								cursor: pointer;
-							}
-									
-		
-		
-		
-		
+        .form-group-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            cursor: pointer;
+        }
 
+        textarea[readonly], input[readonly] {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
 
-						textarea[readonly], input[readonly] {
-					background-color: #e9ecef; /* Tom cinzento claro */
-					cursor: not-allowed;        /* Muda o cursor para indicar bloqueio */
-				}
+        .btn-copiar-descricao {
+            background: #5bc0de;
+            color: white;
+            padding: 6px 12px;
+            font-size: 13px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
 
-		
-		
-		
-		
-		
-		
+        .btn-copiar-descricao:hover {
+            background: #31b0d5;
+        }
+
+        .edit-fotos-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 8px;
+            margin-bottom: 15px;
+        }
+
+        .edit-foto-item {
+            position: relative;
+            display: inline-block;
+        }
+
+        .edit-foto-item img {
+            width: 90px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .btn-remover-foto-edit {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #d9534f;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .btn-remover-foto-edit:hover {
+            background: #c9302c;
+        }
     </style>
 </head>
 
@@ -316,24 +382,17 @@
         <input type="text" id="patrimonio" placeholder="Digite ou escaneie o número do patrimônio" autocomplete="off">
         <div id="statusCsv" class="status-csv">Carregando catálogo de bens do servidor...</div>
 		
-		
-		
-									<!-- NOVO CAMPO: Descrição Anterior (Formulário Principal) -->
-					<label for="descricaoanterior">Descrição Anterior</label>
-					<textarea id="descricaoanterior" placeholder="Descrição anterior do bem" readonly></textarea>
+        <label for="descricaoanterior">Descrição Anterior</label>
+        <textarea id="descricaoanterior" placeholder="Descrição anterior do bem" readonly></textarea>
 											
-			
-
-
-					<!-- NOVO CAMPO: Checkbox Diferença Relevante (Formulário Principal) -->
-					<div class="form-group-checkbox">
-						<label for="DiferencaRelevanteNoBem">
-							<input type="checkbox" id="DiferencaRelevanteNoBem">
-							Diferença relevante no bem
-						</label>
-					</div>			
-		
-		
+        <div class="form-group-checkbox">
+            <label for="DiferencaRelevanteNoBem">
+                <input type="checkbox" id="DiferencaRelevanteNoBem">
+                Diferença relevante no bem
+            </label>
+        </div>			
+					
+        <button type="button" id="btnCopiarDescricao" class="btn-copiar-descricao">📋 Copiar Descrição Anterior para Descrição Atual</button>		
 
         <label for="estado">Estado</label>
         <select id="estado">
@@ -346,7 +405,6 @@
         <label for="descricao">Descrição</label>
         <textarea id="descricao" placeholder="Descrição do bem (preenchida automaticamente ao localizar o patrimônio)"></textarea>
 
-        <!-- BUSCA DE CHEFIA -->
         <label for="buscarChefia">Buscar chefia</label>
         <div class="campo-busca-dinamica">
             <input type="text" id="buscarChefia" placeholder="Digite parte do nome da chefia..." autocomplete="off">
@@ -359,7 +417,6 @@
         <label for="chefia">Chefia selecionada</label>
         <input type="text" id="chefia" placeholder="Selecione uma chefia na busca acima" readonly>
 
-        <!-- BUSCA DE LOCALIZAÇÃO -->
         <label for="buscarLocalizacao">Buscar localização</label>
         <div class="campo-busca-dinamica">
             <input type="text" id="buscarLocalizacao" placeholder="Digite parte do nome da localização..." autocomplete="off">
@@ -413,21 +470,15 @@
             <label for="editPatrimonio">Patrimônio</label>
             <input type="text" id="editPatrimonio">
 			
+            <label for="editDescricaoanterior">Descrição Anterior</label>
+            <textarea id="editDescricaoanterior" readonly></textarea>
 			
-												<!-- NOVO CAMPO: Descrição Anterior (Modal de Edição) -->
-						<label for="editDescricaoanterior">Descrição Anterior</label>
-						<textarea id="editDescricaoanterior" readonly></textarea>
-			
-			
-									<!-- NOVO CAMPO: Checkbox Diferença Relevante (Modal de Edição) -->
-						<div class="form-group-checkbox">
-							<label for="editDiferencaRelevanteNoBem">
-								<input type="checkbox" id="editDiferencaRelevanteNoBem">
-								Diferença relevante no bem
-							</label>
-						</div>
-			
-			
+            <div class="form-group-checkbox">
+                <label for="editDiferencaRelevanteNoBem">
+                    <input type="checkbox" id="editDiferencaRelevanteNoBem">
+                    Diferença relevante no bem
+                </label>
+            </div>
 
             <label for="editEstado">Estado</label>
             <select id="editEstado">
@@ -448,6 +499,17 @@
 
             <label for="editMembro">Membro da equipe</label>
             <input type="text" id="editMembro">
+			
+            <label>Fotos do Registro</label>
+            <div id="editFotosContainer" class="edit-fotos-container"></div>
+
+            <div>
+                <button type="button" id="btnEditCamera">📷 Tirar foto</button>
+                <button type="button" id="btnEditGaleria">🖼️ Escolher foto</button>
+                <input type="file" id="editCameraInput" accept="image/*" capture="environment" hidden>
+                <input type="file" id="editFotosInput" accept="image/*" multiple hidden>
+            </div>
+            <div id="editPreviewNovasFotos" class="edit-fotos-container" style="margin-top: 10px;"></div>
 
             <button type="submit" class="btn-salvar">Salvar Alterações</button>
         </form>
@@ -457,11 +519,6 @@
 <script src="jszip.min.js"></script>
 
 <script>
-/**
- * ==============================================================================
- * MODULO 1: CONFIGURAÇÕES E DADOS ESTÁTICOS (ConfigModule)
- * ==============================================================================
- */
 const ConfigModule = (function () {
     const DB_NAME = "InventarioDB";
     const DB_VERSION = 1;
@@ -961,11 +1018,6 @@ const ConfigModule = (function () {
     };
 })();
 
-/**
- * ==============================================================================
- * MODULO 2: GERENCIAMENTO DE CONSULTA CSV (CatalogModule)
- * ==============================================================================
- */
 const CatalogModule = (function (Config) {
     const mapaBens = new Map();
     let carregado = false;
@@ -1026,11 +1078,6 @@ const CatalogModule = (function (Config) {
     };
 })(ConfigModule);
 
-/**
- * ==============================================================================
- * MODULO 3: FUNÇÕES UTILITÁRIAS (UtilsModule)
- * ==============================================================================
- */
 const UtilsModule = (function () {
     function normalizarTexto(texto) {
         if (!texto) return "";
@@ -1077,11 +1124,6 @@ const UtilsModule = (function () {
     };
 })();
 
-/**
- * ==============================================================================
- * MODULO 4: GERENCIAMENTO DE BANCO DE DADOS (DatabaseModule)
- * ==============================================================================
- */
 const DatabaseModule = (function (Config) {
     let dbInstance = null;
 
@@ -1176,45 +1218,24 @@ const DatabaseModule = (function (Config) {
     };
 })(ConfigModule);
 
-/**
- * ==============================================================================
- * MODULO 5: PREFERÊNCIAS LOCAIS (StorageModule)
- * ==============================================================================
- */
 const StorageModule = (function () {
     const KEYS = {
         LOCALIZACAO: "ultimaLocalizacao",
         CHEFIA: "ultimaChefia",
         MEMBRO: "ultimoMembro",
         DESCRICAO: "ultimaDescricao",
-						// -----------------------------------------------------------------
-						// ETAPA 4: CHAVE DO LOCALSTORAGE
-						DESCRICAO_ANTERIOR: "ultimaDescricaoAnterior",
-						// -----------------------------------------------------------------
-						
-						
-						
-						// -----------------------------------------------------------------
-						// ETAPA 4: NOVA CHAVE CHK
-						DIFERENCA_RELEVANTE: "ultimaDiferencaRelevante"
-						// -----------------------------------------------------------------
-						
-						
-						
+        DESCRICAO_ANTERIOR: "ultimaDescricaoAnterior",
+        DIFERENCA_RELEVANTE: "ultimaDiferencaRelevante"
     };
 
-									// CORREÇÃO: Adicionado 'descricaoanterior' na assinatura da função
-								function salvarPreferencias(localizacao, chefia, membro, descricao, descricaoanterior, diferencaRelevante) {
-									localStorage.setItem(KEYS.LOCALIZACAO, localizacao);
-									localStorage.setItem(KEYS.CHEFIA, chefia);
-									localStorage.setItem(KEYS.MEMBRO, membro);
-									localStorage.setItem(KEYS.DESCRICAO, descricao);
-
-									// Agora a variável existe e pode ser salva corretamente:
-									localStorage.setItem(KEYS.DESCRICAO_ANTERIOR, descricaoanterior);
-
-									localStorage.setItem(KEYS.DIFERENCA_RELEVANTE, diferencaRelevante ? "true" : "false");
-								}
+    function salvarPreferencias(localizacao, chefia, membro, descricao, descricaoanterior, diferencaRelevante) {
+        localStorage.setItem(KEYS.LOCALIZACAO, localizacao);
+        localStorage.setItem(KEYS.CHEFIA, chefia);
+        localStorage.setItem(KEYS.MEMBRO, membro);
+        localStorage.setItem(KEYS.DESCRICAO, descricao);
+        localStorage.setItem(KEYS.DESCRICAO_ANTERIOR, descricaoanterior);
+        localStorage.setItem(KEYS.DIFERENCA_RELEVANTE, diferencaRelevante ? "true" : "false");
+    }
 
     function obterPreferencias() {
         return {
@@ -1222,19 +1243,8 @@ const StorageModule = (function () {
             chefia: localStorage.getItem(KEYS.CHEFIA) || "",
             membro: localStorage.getItem(KEYS.MEMBRO) || "",
             descricao: localStorage.getItem(KEYS.DESCRICAO) || "",
-			
-			
-			// -----------------------------------------------------------------
-            // ETAPA 4: RECUPERANDO O VALOR
             descricaoanterior: localStorage.getItem(KEYS.DESCRICAO_ANTERIOR) || "",
-            // -----------------------------------------------------------------
-			
-			
-			
-			// Retorna o booleano convertido
             diferencaRelevante: localStorage.getItem(KEYS.DIFERENCA_RELEVANTE) === "true"
-			
-			
         };
     }
 
@@ -1244,11 +1254,6 @@ const StorageModule = (function () {
     };
 })();
 
-/**
- * ==============================================================================
- * MODULO 6: GERENCIAMENTO DE MÍDIA / FOTOS (PhotoModule)
- * ==============================================================================
- */
 const PhotoModule = (function () {
     let arquivosAcumulados = [];
     let urlsCriadas = [];
@@ -1271,18 +1276,39 @@ const PhotoModule = (function () {
         urlsCriadas.forEach(url => URL.revokeObjectURL(url));
         urlsCriadas = [];
     }
+	
+    function removerArquivo(indice) {
+        arquivosAcumulados.splice(indice, 1);
+    }
 
     function renderizarPreview(containerElement) {
         limparURLs();
         containerElement.innerHTML = "";
 
-        arquivosAcumulados.forEach(arquivo => {
+        arquivosAcumulados.forEach((arquivo, indice) => {
             const url = URL.createObjectURL(arquivo);
             urlsCriadas.push(url);
 
+            const wrapper = document.createElement("div");
+            wrapper.className = "foto-preview-item";
+
             const img = document.createElement("img");
             img.src = url;
-            containerElement.appendChild(img);
+
+            const btnRemover = document.createElement("button");
+            btnRemover.type = "button";
+            btnRemover.className = "btn-remover-preview";
+            btnRemover.innerHTML = "&times;";
+            btnRemover.title = "Remover foto";
+
+            btnRemover.addEventListener("click", () => {
+                removerArquivo(indice);
+                renderizarPreview(containerElement);
+            });
+
+            wrapper.appendChild(img);
+            wrapper.appendChild(btnRemover);
+            containerElement.appendChild(wrapper);
         });
     }
 
@@ -1319,6 +1345,7 @@ const PhotoModule = (function () {
 
     return {
         adicionarArquivos,
+        removerArquivo,
         limparArquivos,
         obterArquivos,
         renderizarPreview,
@@ -1327,11 +1354,6 @@ const PhotoModule = (function () {
     };
 })();
 
-/**
- * ==============================================================================
- * MODULO 7: EXPORTAÇÃO E GERAÇÃO DE ARQUIVOS (ExportModule)
- * ==============================================================================
- */
 const ExportModule = (function (Database, PhotoUtils, Utils) {
 
     async function gerarZIP() {
@@ -1344,27 +1366,10 @@ const ExportModule = (function (Database, PhotoUtils, Utils) {
 
         const zip = new JSZip();
         const pastaFotos = zip.folder("fotos");
-        //let csvContent = "ID;Patrimônio;Estado;Descrição;Chefia;Localização;Membro;Data;Imagens\n";
-		
-						// Cabeçalho atualizado do CSV:
-				//let csvContent = "ID;Patrimônio;Estado;Descrição;Descrição Anterior;Chefia;Localização;Membro;Data;Imagens\n";
-
-
-						// 1. Cabeçalho atualizado:
-						let csvContent = "ID;Patrimônio;Estado;Descrição;Descrição Anterior;Diferença Relevante;Chefia;Localização;Membro;Data;Imagens\n";
-
-						
-
-
-
+        let csvContent = "ID;Patrimônio;Estado;Descrição;Descrição Anterior;Diferença Relevante;Chefia;Localização;Membro;Data;Imagens\n";
 
         registros.forEach(registro => {
-		
-		
-		// 2. Linhas de dados (converte true/false para 'SIM' ou 'NÃO' no arquivo exportado):
-						const textoDiferenca = registro.DiferencaRelevanteNoBem ? "SIM" : "NÃO";
-		
-		
+            const textoDiferenca = registro.DiferencaRelevanteNoBem ? "SIM" : "NÃO";
             const caminhosFotos = [];
 
             if (registro.fotos && registro.fotos.length > 0) {
@@ -1384,15 +1389,8 @@ const ExportModule = (function (Database, PhotoUtils, Utils) {
                 Utils.escaparCSV(registro.patrimonio) + ";" +
                 Utils.escaparCSV(registro.estado) + ";" +
                 Utils.escaparCSV(registro.descricao) + ";" +
-				
-						// Adicionado aqui
-						Utils.escaparCSV(registro.descricaoanterior) + ";" + 
-						
-						// Adicionado no CSV
-						Utils.escaparCSV(textoDiferenca) + ";" + // Adicionado no CSV
-						
-				
-				
+                Utils.escaparCSV(registro.descricaoanterior) + ";" + 
+                Utils.escaparCSV(textoDiferenca) + ";" +
                 Utils.escaparCSV(registro.chefia) + ";" +
                 Utils.escaparCSV(registro.localizacao) + ";" +
                 Utils.escaparCSV(registro.membro) + ";" +
@@ -1435,13 +1433,12 @@ const ExportModule = (function (Database, PhotoUtils, Utils) {
     };
 })(DatabaseModule, PhotoModule, UtilsModule);
 
-/**
- * ==============================================================================
- * MODULO 8: INTERFACE DE USUÁRIO E EVENTOS (UIModule)
- * ==============================================================================
- */
 const UIModule = (function (Config, Catalog, Database, Storage, Photo, Export, Utils) {
     const DOM = {};
+	
+    let fotosEdicaoAtuais = [];
+    let novasFotosEdicao = [];
+    let urlsEditMemoria = [];
 
     function mapearElementos() {
         DOM.form = document.getElementById("formInventario");
@@ -1470,22 +1467,9 @@ const UIModule = (function (Config, Catalog, Database, Storage, Photo, Export, U
         DOM.descricaoInput = document.getElementById("descricao");
         DOM.membroInput = document.getElementById("membro");
 		
-		
-		
-						// -----------------------------------------------------------------
-					// MAPEAMENTO DO NOVO CAMPO (Formulário Principal)
-					DOM.descricaoanteriorInput = document.getElementById("descricaoanterior");
-					// -----------------------------------------------------------------
-						
-		
-		
-						// -----------------------------------------------------------------
-					// MAPEAMENTO DA CHECKBOX (Formulário Principal)
-					DOM.diferencaRelevanteCheckbox = document.getElementById("DiferencaRelevanteNoBem");
-					// -----------------------------------------------------------------
-						
-		
-		
+        DOM.descricaoanteriorInput = document.getElementById("descricaoanterior");
+        DOM.diferencaRelevanteCheckbox = document.getElementById("DiferencaRelevanteNoBem");
+        DOM.btnCopiarDescricao = document.getElementById("btnCopiarDescricao");
 
         // Elementos do Modal
         DOM.modalEdicao = document.getElementById("modalEdicao");
@@ -1499,25 +1483,14 @@ const UIModule = (function (Config, Catalog, Database, Storage, Photo, Export, U
         DOM.editLocalizacao = document.getElementById("editLocalizacao");
         DOM.editMembro = document.getElementById("editMembro");
 		
-		
-		
-						// -----------------------------------------------------------------
-					// MAPEAMENTO DO NOVO CAMPO (Modal de Edição)
-					DOM.editDescricaoanterior = document.getElementById("editDescricaoanterior");
-					// -----------------------------------------------------------------
-						
-		
-							
-						// -----------------------------------------------------------------
-					// MAPEAMENTO DA CHECKBOX (Modal de Edição)
-					DOM.editDiferencaRelevanteCheckbox = document.getElementById("editDiferencaRelevanteNoBem");
-					// -----------------------------------------------------------------
-						
-		
-		
-		
-		
-		
+        DOM.editFotosContainer = document.getElementById("editFotosContainer");
+        DOM.btnEditCamera = document.getElementById("btnEditCamera");
+        DOM.btnEditGaleria = document.getElementById("btnEditGaleria");
+        DOM.editCameraInput = document.getElementById("editCameraInput");
+        DOM.editFotosInput = document.getElementById("editFotosInput");
+        DOM.editPreviewNovasFotos = document.getElementById("editPreviewNovasFotos");
+        DOM.editDescricaoanterior = document.getElementById("editDescricaoanterior");
+        DOM.editDiferencaRelevanteCheckbox = document.getElementById("editDiferencaRelevanteNoBem");
     }
 
     function atualizarStatusBanco(sucesso, mensagem) {
@@ -1546,10 +1519,7 @@ const UIModule = (function (Config, Catalog, Database, Storage, Photo, Export, U
 
             const descricaoEncontrada = Catalog.buscarDescricao(numero);
             if (descricaoEncontrada) {
-										// -----------------------------------------------------------------
-									// ALTERAÇÃO: Preenche o campo 'descricaoanterior' em vez de 'descricao'
-									DOM.descricaoanteriorInput.value = descricaoEncontrada;
-									// -----------------------------------------------------------------
+                DOM.descricaoanteriorInput.value = descricaoEncontrada;
             }
         });
     }
@@ -1663,23 +1633,8 @@ const UIModule = (function (Config, Catalog, Database, Storage, Photo, Export, U
 
             const registro = {
                 patrimonio: DOM.patrimonioInput.value.trim(),
-				
-				
-					// -----------------------------------------------------------------
-						// ETAPA 3: INCLUSÃO DO NOVO CAMPO NO REGISTRO
-						descricaoanterior: DOM.descricaoanteriorInput.value.trim(),
-						// -----------------------------------------------------------------
-							
-				
-							// -----------------------------------------------------------------
-						// ETAPA 3: CAPTURA DO VALOR BOOLEANO (true/false)
-						DiferencaRelevanteNoBem: DOM.diferencaRelevanteCheckbox.checked,
-						// -----------------------------------------------------------------
-				
-				
-				
-				
-				
+                descricaoanterior: DOM.descricaoanteriorInput.value.trim(),
+                DiferencaRelevanteNoBem: DOM.diferencaRelevanteCheckbox.checked,
                 estado: DOM.estadoSelect.value,
                 descricao: DOM.descricaoInput.value.trim(),
                 chefia: DOM.campoChefia.value.trim(),
@@ -1687,55 +1642,23 @@ const UIModule = (function (Config, Catalog, Database, Storage, Photo, Export, U
                 membro: DOM.membroInput.value.trim(),
                 fotos: fotosProcessadas,
                 timestamp: new Date().toISOString()
-				
-				
-				
-						
-							
-				
-				
-				
-				
-				
-				
             };
 
             await Database.adicionarRegistro(registro);
 
             Storage.salvarPreferencias(
-			registro.localizacao,
-			registro.chefia, 
-			registro.membro, 
-			registro.descricao,
-			
-										// Atualizado na Etapa 4 (passando o novo campo)
-										registro.descricaoanterior ,
-										
-										
-										registro.DiferencaRelevanteNoBem
-										
-										
-										
-										
-			);							
-										
+                registro.localizacao,
+                registro.chefia, 
+                registro.membro, 
+                registro.descricao,
+                registro.descricaoanterior,
+                registro.DiferencaRelevanteNoBem
+            );							
 										
             alert("Registro salvo com sucesso!");
 
             DOM.patrimonioInput.value = "";
-			
-			
-											// Se desejar limpar a descrição anterior após salvar, descomente a linha abaixo:
-										// DOM.descricaoanteriorInput.value = "";
-										
-										
-			
-			                           // -----------------------------------------------------------------
-										// RESETA A CHECKBOX APÓS SALVAR
-										DOM.diferencaRelevanteCheckbox.checked = false;
-										// -----------------------------------------------------------------
-			
-			
+            DOM.diferencaRelevanteCheckbox.checked = false;
             Photo.limparArquivos();
             DOM.previewFotos.innerHTML = "";
 
@@ -1771,42 +1694,12 @@ const UIModule = (function (Config, Catalog, Database, Storage, Photo, Export, U
                 let html = "";
                 html += "<strong>Patrimônio:</strong> " + Utils.escaparHTML(registro.patrimonio) + "<br>";
                 html += "<strong>Estado:</strong> " + Utils.escaparHTML(registro.estado) + "<br>";
-				
-				
-				
-                //html += "<strong>Descrição:</strong> " + Utils.escaparHTML(registro.descricao) + "<br>";
-											// Dentro do loop de renderização dos registos em listarRegistros():
-							html += "<strong>Descrição:</strong> " + Utils.escaparHTML(registro.descricao) + "<br>";
+                html += "<strong>Descrição:</strong> " + Utils.escaparHTML(registro.descricao) + "<br>";
+                html += "<strong>Descrição Anterior:</strong> " + Utils.escaparHTML(registro.descricaoanterior) + "<br>";
 
-							// INCLUSÃO NA EXIBIÇÃO:
-							html += "<strong>Descrição Anterior:</strong> " + Utils.escaparHTML(registro.descricaoanterior) + "<br>";
-
-				
-				
-				
-							// -----------------------------------------------------------------
-							// EXIBIÇÃO DA CHECKBOX NO CARD
-							const temDiferenca = registro.DiferencaRelevanteNoBem ? "Sim" : "Não";
-							html += "<strong>Diferença Relevante:</strong> " + temDiferenca + "<br>";
-							// -----------------------------------------------------------------
-				
-				
-				
-				
-				
-				
-				html += "<strong>Chefia:</strong> " + Utils.escaparHTML(registro.chefia) + "<br>";
-				
-				
-				
-				
-				
-				
-                //html += "<strong>Chefia:</strong> " + Utils.escaparHTML(registro.chefia) + "<br>";
-				
-				
-				
-				
+                const temDiferenca = registro.DiferencaRelevanteNoBem ? "Sim" : "Não";
+                html += "<strong>Diferença Relevante:</strong> " + temDiferenca + "<br>";
+                html += "<strong>Chefia:</strong> " + Utils.escaparHTML(registro.chefia) + "<br>";
                 html += "<strong>Localização:</strong> " + Utils.escaparHTML(registro.localizacao) + "<br>";
                 html += "<strong>Membro:</strong> " + Utils.escaparHTML(registro.membro) + "<br>";
                 html += "<strong>Data/Hora:</strong> " + Utils.formatarDataHora(registro.timestamp) + "<br>";
@@ -1831,7 +1724,6 @@ const UIModule = (function (Config, Catalog, Database, Storage, Photo, Export, U
                     div.appendChild(fotosContainer);
                 }
 
-                // Botão Editar
                 const btnEditar = document.createElement("button");
                 btnEditar.type = "button";
                 btnEditar.className = "btn-editar";
@@ -1839,7 +1731,6 @@ const UIModule = (function (Config, Catalog, Database, Storage, Photo, Export, U
                 btnEditar.addEventListener("click", () => abrirModalEdicao(registro));
                 div.appendChild(btnEditar);
 
-                // Botão Excluir
                 const btnExcluir = document.createElement("button");
                 btnExcluir.type = "button";
                 btnExcluir.className = "btn-excluir";
@@ -1867,30 +1758,89 @@ const UIModule = (function (Config, Catalog, Database, Storage, Photo, Export, U
         }
     }
 
+    function renderizarFotosEdicao() {
+        DOM.editFotosContainer.innerHTML = "";
+        
+        if (fotosEdicaoAtuais.length === 0) {
+            DOM.editFotosContainer.innerHTML = '<span style="font-size: 13px; color: #777;">Nenhuma foto cadastrada.</span>';
+            return;
+        }
+
+        fotosEdicaoAtuais.forEach((foto, indice) => {
+            const item = document.createElement("div");
+            item.className = "edit-foto-item";
+
+            const url = URL.createObjectURL(foto.blob);
+            urlsEditMemoria.push(url);
+
+            const img = document.createElement("img");
+            img.src = url;
+
+            const btnRemover = document.createElement("button");
+            btnRemover.type = "button";
+            btnRemover.className = "btn-remover-foto-edit";
+            btnRemover.innerHTML = "&times;";
+            btnRemover.title = "Excluir foto";
+
+            btnRemover.addEventListener("click", () => {
+                fotosEdicaoAtuais.splice(indice, 1);
+                renderizarFotosEdicao();
+            });
+
+            item.appendChild(img);
+            item.appendChild(btnRemover);
+            DOM.editFotosContainer.appendChild(item);
+        });
+    }
+
+    function renderizarPreviewNovasEdicao() {
+        DOM.editPreviewNovasFotos.innerHTML = "";
+
+        novasFotosEdicao.forEach((arquivo, indice) => {
+            const item = document.createElement("div");
+            item.className = "edit-foto-item";
+
+            const url = URL.createObjectURL(arquivo);
+            urlsEditMemoria.push(url);
+
+            const img = document.createElement("img");
+            img.src = url;
+
+            const btnRemover = document.createElement("button");
+            btnRemover.type = "button";
+            btnRemover.className = "btn-remover-foto-edit";
+            btnRemover.innerHTML = "&times;";
+            btnRemover.title = "Remover nova foto";
+
+            btnRemover.addEventListener("click", () => {
+                novasFotosEdicao.splice(indice, 1);
+                renderizarPreviewNovasEdicao();
+            });
+
+            item.appendChild(img);
+            item.appendChild(btnRemover);
+            DOM.editPreviewNovasFotos.appendChild(item);
+        });
+    }
+
     function abrirModalEdicao(registro) {
         DOM.editId.value = registro.id;
         DOM.editPatrimonio.value = registro.patrimonio || "";
         DOM.editEstado.value = registro.estado || "EM USO";
         DOM.editDescricao.value = registro.descricao || "";
-		
-		
-						// INCLUSÃO NO MODAL:
-					DOM.editDescricaoanterior.value = registro.descricaoanterior || "";
-					
-					
-					
-					// -----------------------------------------------------------------
-					// POPULA A CHECKBOX NO MODAL (Garante booleano seguro)
-					DOM.editDiferencaRelevanteCheckbox.checked = Boolean(registro.DiferencaRelevanteNoBem);
-					// -----------------------------------------------------------------
-										
-		
-		
-		
-		
+        DOM.editDescricaoanterior.value = registro.descricaoanterior || "";
+        DOM.editDiferencaRelevanteCheckbox.checked = Boolean(registro.DiferencaRelevanteNoBem);
         DOM.editChefia.value = registro.chefia || "";
         DOM.editLocalizacao.value = registro.localizacao || "";
         DOM.editMembro.value = registro.membro || "";
+
+        fotosEdicaoAtuais = registro.fotos ? [...registro.fotos] : [];
+        novasFotosEdicao = [];
+        DOM.editFotosInput.value = "";
+        DOM.editCameraInput.value = "";
+
+        renderizarFotosEdicao();
+        renderizarPreviewNovasEdicao();
 
         DOM.modalEdicao.style.display = "block";
     }
@@ -1906,6 +1856,21 @@ const UIModule = (function (Config, Catalog, Database, Storage, Photo, Export, U
             }
         });
 
+        DOM.btnEditCamera.addEventListener("click", () => DOM.editCameraInput.click());
+        DOM.btnEditGaleria.addEventListener("click", () => DOM.editFotosInput.click());
+
+        DOM.editCameraInput.addEventListener("change", function() {
+            novasFotosEdicao = novasFotosEdicao.concat(Array.from(this.files));
+            renderizarPreviewNovasEdicao();
+            this.value = "";
+        });
+
+        DOM.editFotosInput.addEventListener("change", function() {
+            novasFotosEdicao = novasFotosEdicao.concat(Array.from(this.files));
+            renderizarPreviewNovasEdicao();
+            this.value = "";
+        });
+
         DOM.formEdicao.addEventListener("submit", async (e) => {
             e.preventDefault();
 
@@ -1913,32 +1878,32 @@ const UIModule = (function (Config, Catalog, Database, Storage, Photo, Export, U
                 const id = Number(DOM.editId.value);
                 const registros = await Database.obterTodosRegistros();
                 const registroOriginal = registros.find(r => r.id === id);
+				
+                let novasFotosProcessadas = [];
+                for (const arquivo of novasFotosEdicao) {
+                    const buffer = await arquivo.arrayBuffer();
+                    const blob = new Blob([buffer], { type: arquivo.type });
+                    novasFotosProcessadas.push({
+                        nome: arquivo.name,
+                        tipo: arquivo.type,
+                        tamanho: arquivo.size,
+                        blob: blob
+                    });
+                }
+                
+                const fotosFinais = [...fotosEdicaoAtuais, ...novasFotosProcessadas];
 
                 const registroAtualizado = {
                     id: id,
                     patrimonio: DOM.editPatrimonio.value.trim(),
                     estado: DOM.editEstado.value,
                     descricao: DOM.editDescricao.value.trim(),
-					
-					
-							// INCLUSÃO NA ATUALIZAÇÃO DO REGISTO:
-							descricaoanterior: DOM.editDescricaoanterior.value.trim(),
-							
-					
-					
-							// -----------------------------------------------------------------
-							// SALVA A ALTERAÇÃO FEITA NO MODAL
-							DiferencaRelevanteNoBem: DOM.editDiferencaRelevanteCheckbox.checked,
-							// -----------------------------------------------------------------
-											
-											
-					
-					
-					
+                    descricaoanterior: DOM.editDescricaoanterior.value.trim(),
+                    DiferencaRelevanteNoBem: DOM.editDiferencaRelevanteCheckbox.checked,
                     chefia: DOM.editChefia.value.trim(),
                     localizacao: DOM.editLocalizacao.value.trim(),
                     membro: DOM.editMembro.value.trim(),
-                    fotos: registroOriginal ? registroOriginal.fotos : [],
+                    fotos: fotosFinais,
                     timestamp: registroOriginal ? registroOriginal.timestamp : new Date().toISOString()
                 };
 
@@ -1970,26 +1935,10 @@ const UIModule = (function (Config, Catalog, Database, Storage, Photo, Export, U
         if (prefs.descricao) {
             DOM.descricaoInput.value = prefs.descricao;
         }  
-		
-							// -----------------------------------------------------------------
-						// ETAPA 4: RESTAURANDO O CAMPO NA INTERFACE
-						if (prefs.descricaoanterior) {
-							DOM.descricaoanteriorInput.value = prefs.descricaoanterior;
-						}
-						// -----------------------------------------------------------------
-						
-						
-						// -----------------------------------------------------------------
-						// RESTAURA O ESTADO MARCADO/DESMARCADO
-						DOM.diferencaRelevanteCheckbox.checked = prefs.diferencaRelevante;
-						// -----------------------------------------------------------------
-						
-						
-						
-						
-		
-		
-		
+        if (prefs.descricaoanterior) {
+            DOM.descricaoanteriorInput.value = prefs.descricaoanterior;
+        }
+        DOM.diferencaRelevanteCheckbox.checked = prefs.diferencaRelevante;
     }
 
     function inicializarServiceWorker() {
@@ -2015,6 +1964,15 @@ const UIModule = (function (Config, Catalog, Database, Storage, Photo, Export, U
         DOM.listarBtn.addEventListener("click", listarRegistros);
         DOM.exportarBtn.addEventListener("click", () => {
             Export.gerarZIP().catch(err => alert("Erro na exportação: " + err.message));
+        });
+
+        DOM.btnCopiarDescricao.addEventListener("click", () => {
+            const textoAnterior = DOM.descricaoanteriorInput.value;
+            if (!textoAnterior.trim()) {
+                alert("Não há texto na Descrição Anterior para copiar.");
+                return;
+            }
+            DOM.descricaoInput.value = textoAnterior;
         });
 
         Catalog.carregarCatalogo(atualizarStatusCsv);
