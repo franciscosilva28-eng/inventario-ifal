@@ -363,6 +363,31 @@
         .btn-remover-foto-edit:hover {
             background: #c9302c;
         }
+		
+		
+									/* Contêiner de cada foto com seu tamanho */
+							.item-foto-container {
+								display: flex;
+								flex-direction: column;
+								align-items: center;
+								background: #f0f0f0;
+								padding: 5px;
+								border-radius: 6px;
+								border: 1px solid #ccc;
+							}
+
+							.tamanho-foto-tag {
+								font-size: 11px;
+								color: #444;
+								font-weight: bold;
+								margin-top: 4px;
+							}
+									
+									
+		
+		
+		
+		
     </style>
 </head>
 
@@ -1254,13 +1279,94 @@ const StorageModule = (function () {
     };
 })();
 
+
+
+
+
+/**
+ * ==============================================================================
+ * MODULO 6: GERENCIAMENTO DE MÍDIA / FOTOS (PhotoModule)
+ * ==============================================================================
+ */
 const PhotoModule = (function () {
     let arquivosAcumulados = [];
     let urlsCriadas = [];
 
-    function adicionarArquivos(filesList) {
+    // Função auxiliar para redimensionar e comprimir qualquer imagem (Câmera/Galeria)
+    function comprimirFoto(arquivo, larguraMaxima = 1200, qualidade = 0.7) {
+        return new Promise((resolve) => {
+            // Se não for imagem, retorna o arquivo original
+            if (!arquivo || !arquivo.type.startsWith("image/")) {
+                return resolve(arquivo);
+            }
+
+            const img = new Image();
+            const urlTemporaria = URL.createObjectURL(arquivo);
+            img.src = urlTemporaria;
+
+            img.onload = () => {
+                URL.revokeObjectURL(urlTemporaria);
+
+                let largura = img.width;
+                let altura = img.height;
+
+                // Redimensiona proporcionalmente se passar do tamanho máximo
+                if (largura > larguraMaxima || altura > larguraMaxima) {
+                    if (largura > altura) {
+                        altura = Math.round((altura * larguraMaxima) / largura);
+                        largura = larguraMaxima;
+                    } else {
+                        largura = Math.round((largura * larguraMaxima) / altura);
+                        altura = larguraMaxima;
+                    }
+                }
+
+                const canvas = document.createElement("canvas");
+                canvas.width = largura;
+                canvas.height = altura;
+
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, largura, altura);
+
+                canvas.toBlob(
+                    (blob) => {
+                        if (!blob) {
+                            // Se o canvas falhar por falta de memória, devolve o arquivo original
+                            return resolve(arquivo);
+                        }
+                        // Cria um novo arquivo File leve com extensão .jpg
+                        const nomeFormatado = (arquivo.name || "foto.jpg").replace(/\.[^/.]+$/, ".jpg");
+                        const arquivoComprimido = new File([blob], nomeFormatado, {
+                            type: "image/jpeg",
+                            lastModified: Date.now()
+                        });
+                        resolve(arquivoComprimido);
+                    },
+                    "image/jpeg",
+                    qualidade
+                );
+            };
+
+            // Tratamento de erro caso a foto gigante falhe ao carregar
+            img.onerror = () => {
+                URL.revokeObjectURL(urlTemporaria);
+                resolve(arquivo); // Devolve o original em caso de erro
+            };
+        });
+    }
+
+    // Processa e comprima as fotos ASSIM QUE ELAS SÃO TIRADAS / SELECIONADAS
+    async function adicionarArquivos(filesList) {
         const novos = Array.from(filesList);
-        arquivosAcumulados = arquivosAcumulados.concat(novos);
+        for (const arquivo of novos) {
+            try {
+                const arquivoLeve = await comprimirFoto(arquivo, 1200, 0.7);
+                arquivosAcumulados.push(arquivoLeve);
+            } catch (err) {
+                console.warn("Falha ao comprimir foto, mantendo original:", err);
+                arquivosAcumulados.push(arquivo);
+            }
+        }
     }
 
     function limparArquivos() {
@@ -1277,107 +1383,66 @@ const PhotoModule = (function () {
         urlsCriadas = [];
     }
 	
-    function removerArquivo(indice) {
-        arquivosAcumulados.splice(indice, 1);
-    }
+	
+	
+	
+									// Adicione esta função auxiliar no PhotoModule
+								function formatarTamanhoBytes(bytes) {
+									if (!bytes || bytes === 0) return "0 KB";
+									const k = 1024;
+									const tamanhos = ["Bytes", "KB", "MB", "GB"];
+									const i = Math.floor(Math.log(bytes) / Math.log(k));
+									return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + tamanhos[i];
+								}
+									
+									
 
-    function renderizarPreview(containerElement) {
-        limparURLs();
-        containerElement.innerHTML = "";
+									// Atualize a função renderizarPreview dentro do PhotoModule:
+								function renderizarPreview(containerElement) {
+									limparURLs();
+									containerElement.innerHTML = "";
 
-        arquivosAcumulados.forEach((arquivo, indice) => {
-            const url = URL.createObjectURL(arquivo);
-            urlsCriadas.push(url);
+									arquivosAcumulados.forEach(arquivo => {
+										const url = URL.createObjectURL(arquivo);
+										urlsCriadas.push(url);
 
-            const wrapper = document.createElement("div");
-            wrapper.className = "foto-preview-item";
+										// Cria o contêiner de cada foto do preview
+										const itemDiv = document.createElement("div");
+										itemDiv.className = "item-foto-container";
 
-            const img = document.createElement("img");
-            img.src = url;
+										const img = document.createElement("img");
+										img.src = url;
 
-            const btnRemover = document.createElement("button");
-            btnRemover.type = "button";
-            btnRemover.className = "btn-remover-preview";
-            btnRemover.innerHTML = "&times;";
-            btnRemover.title = "Remover foto";
+										// Cria a legenda com o tamanho da imagem
+										const spanTamanho = document.createElement("span");
+										spanTamanho.className = "tamanho-foto-tag";
+										spanTamanho.textContent = formatarTamanhoBytes(arquivo.size);
 
-            btnRemover.addEventListener("click", () => {
-                removerArquivo(indice);
-                renderizarPreview(containerElement);
-            });
+										itemDiv.appendChild(img);
+										itemDiv.appendChild(spanTamanho);
 
-            wrapper.appendChild(img);
-            wrapper.appendChild(btnRemover);
-            containerElement.appendChild(wrapper);
-        });
-    }
+										containerElement.appendChild(itemDiv);
+									});
+								}
 
     async function arquivoParaBlob(arquivo) {
         const buffer = await arquivo.arrayBuffer();
         return new Blob([buffer], { type: arquivo.type });
     }
-	
-	
-	
-	
-	
 
-											// Função auxiliar para redimensionar e comprimir a imagem
-										function comprimirFoto(arquivo, larguraMaxima = 1200, qualidade = 0.7) {
-											return new Promise((resolve) => {
-												const img = new Image();
-												img.src = URL.createObjectURL(arquivo);
-
-												img.onload = () => {
-													let largura = img.width;
-													let altura = img.height;
-
-													// Mantém a proporção da imagem ao redimensionar
-													if (largura > larguraMaxima) {
-														altura = Math.round((altura * larguraMaxima) / largura);
-														largura = larguraMaxima;
-													}
-
-													const canvas = document.createElement("canvas");
-													canvas.width = largura;
-													canvas.height = altura;
-
-													const ctx = canvas.getContext("2d");
-													ctx.drawImage(img, 0, 0, largura, altura);
-
-													// Converte a imagem comprimida em formato WebP ou JPEG
-													canvas.toBlob(
-														(blob) => {
-															URL.revokeObjectURL(img.src);
-															resolve(blob);
-														},
-														"image/jpeg",
-														qualidade // 0.7 = 70% de qualidade (excelente para fotos de inventário)
-													);
-												};
-											});
-										}
-
-										async function processarFotosParaRegistro() {
-											const fotosProcessadas = [];
-											for (const arquivo of arquivosAcumulados) {
-												// Redimensiona para no máximo 1200px e comprime a 70% de qualidade
-												const blobComprimido = await comprimirFoto(arquivo, 1200, 0.7);
-
-												fotosProcessadas.push({
-													nome: arquivo.name.replace(/\.[^/.]+$/, ".jpg"), // Garante extensão .jpg
-													tipo: "image/jpeg",
-													tamanho: blobComprimido.size,
-													blob: blobComprimido
-												});
-											}
-											return fotosProcessadas;
-										}
-										
-										
-										
-										
-										
+    async function processarFotosParaRegistro() {
+        const fotosProcessadas = [];
+        for (const arquivo of arquivosAcumulados) {
+            const blob = await arquivoParaBlob(arquivo);
+            fotosProcessadas.push({
+                nome: arquivo.name,
+                tipo: arquivo.type,
+                tamanho: arquivo.size,
+                blob: blob
+            });
+        }
+        return fotosProcessadas;
+    }
 
     function obterExtensaoFoto(foto) {
         if (foto.nome) {
@@ -1393,7 +1458,6 @@ const PhotoModule = (function () {
 
     return {
         adicionarArquivos,
-        removerArquivo,
         limparArquivos,
         obterArquivos,
         renderizarPreview,
@@ -1401,6 +1465,8 @@ const PhotoModule = (function () {
         obterExtensaoFoto
     };
 })();
+
+
 
 const ExportModule = (function (Database, PhotoUtils, Utils) {
 
@@ -1659,19 +1725,26 @@ const UIModule = (function (Config, Catalog, Database, Storage, Photo, Export, U
         });
     }
 
-    function configurarCapturaFotos() {
-        DOM.btnCamera.addEventListener("click", () => DOM.cameraInput.click());
-        DOM.btnGaleria.addEventListener("click", () => DOM.fotosInput.click());
 
-        const tratarSelecao = (inputElement) => {
-            Photo.adicionarArquivos(inputElement.files);
-            Photo.renderizarPreview(DOM.previewFotos);
-            inputElement.value = "";
-        };
 
-        DOM.cameraInput.addEventListener("change", function () { tratarSelecao(this); });
-        DOM.fotosInput.addEventListener("change", function () { tratarSelecao(this); });
-    }
+function configurarCapturaFotos() {
+    DOM.btnCamera.addEventListener("click", () => DOM.cameraInput.click());
+    DOM.btnGaleria.addEventListener("click", () => DOM.fotosInput.click());
+
+    const tratarSelecao = async (inputElement) => {
+        if (!inputElement.files || inputElement.files.length === 0) return;
+        
+        // Aguarda a compressão da foto no momento do upload/captura
+        await Photo.adicionarArquivos(inputElement.files);
+        Photo.renderizarPreview(DOM.previewFotos);
+        
+        inputElement.value = ""; // Limpa o input de arquivo
+    };
+
+    DOM.cameraInput.addEventListener("change", function () { tratarSelecao(this); });
+    DOM.fotosInput.addEventListener("change", function () { tratarSelecao(this); });
+}
+
 
     async function submeterFormulario(event) {
         event.preventDefault();
@@ -1754,23 +1827,44 @@ const UIModule = (function (Config, Catalog, Database, Storage, Photo, Export, U
 
                 div.innerHTML = html;
 
-                if (registro.fotos && registro.fotos.length > 0) {
-                    const fotosContainer = document.createElement("div");
-                    fotosContainer.className = "fotos-registro";
 
-                    registro.fotos.forEach(foto => {
-                        const url = URL.createObjectURL(foto.blob);
-                        urlsListagemMemoria.push(url);
 
-                        const img = document.createElement("img");
-                        img.src = url;
-                        img.className = "foto-registro";
-                        img.alt = "Foto do patrimônio";
-                        fotosContainer.appendChild(img);
-                    });
 
-                    div.appendChild(fotosContainer);
-                }
+											if (registro.fotos && registro.fotos.length > 0) {
+												const fotosContainer = document.createElement("div");
+												fotosContainer.className = "fotos-registro";
+
+												registro.fotos.forEach(foto => {
+													const url = URL.createObjectURL(foto.blob);
+													urlsListagemMemoria.push(url);
+
+													// Contêiner com imagem + tamanho do arquivo
+													const itemDiv = document.createElement("div");
+													itemDiv.className = "item-foto-container";
+
+													const img = document.createElement("img");
+													img.src = url;
+													img.className = "foto-registro";
+													img.alt = "Foto do patrimônio";
+
+													// Exibe o tamanho guardado na foto (em KB/MB)
+													const spanTamanho = document.createElement("span");
+													spanTamanho.className = "tamanho-foto-tag";
+													
+													// Calcula e exibe o tamanho do blob guardado no IndexedDB
+													const tamanhoBytes = foto.tamanho || (foto.blob ? foto.blob.size : 0);
+													spanTamanho.textContent = (tamanhoBytes / 1024).toFixed(1) + " KB";
+
+													itemDiv.appendChild(img);
+													itemDiv.appendChild(spanTamanho);
+
+													fotosContainer.appendChild(itemDiv);
+												});
+
+												div.appendChild(fotosContainer);
+											}
+
+
 
                 const btnEditar = document.createElement("button");
                 btnEditar.type = "button";
